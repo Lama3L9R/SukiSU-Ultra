@@ -372,8 +372,6 @@ private fun AppMenuBox(packageName: String, content: @Composable () -> Unit) {
             )
         }
     }
-
-
 }
 
 @Preview

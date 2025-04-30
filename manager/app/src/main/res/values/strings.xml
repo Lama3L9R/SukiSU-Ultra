@@ -194,6 +194,8 @@
     <string name="hide_other_info_summary">Hides information about the number of super users, modules and KPM modules on the home page</string>
     <string name="hide_susfs_status">Hide SuSFS status</string>
     <string name="hide_susfs_status_summary">Hide SuSFS status information on the home page</string>
+    <string name="hide_link_card">Hide Link Card Status</string>
+    <string name="hide_link_card_summary">Hide link card information on the home page</string>
     <string name="theme_mode">Theme</string>
     <string name="theme_follow_system">Follow system</string>
     <string name="theme_light">Light</string>

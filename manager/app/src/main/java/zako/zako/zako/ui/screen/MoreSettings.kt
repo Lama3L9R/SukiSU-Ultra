@@ -191,6 +191,16 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
         isHideSusfsStatus = newValue
     }
 
+    // 隐藏链接状态开关状态
+    var isHideLinkCard by remember {
+        mutableStateOf(prefs.getBoolean("is_hide_link_card", false))
+    }
+
+    val onHideLinkCardChange = { newValue: Boolean ->
+        prefs.edit { putBoolean("is_hide_link_card", newValue) }
+        isHideLinkCard = newValue
+    }
+
     // SELinux状态
     var selinuxEnabled by remember {
         mutableStateOf(Shell.cmd("getenforce").exec().out.firstOrNull() == "Enforcing")
@@ -622,6 +632,21 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             checked = isHideSusfsStatus
                         ) {
                             onHideSusfsStatusChange(it)
+                        }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+
+                        // 隐藏链接信息
+                        SwitchItem(
+                            icon = Icons.Filled.VisibilityOff,
+                            title = stringResource(R.string.hide_link_card),
+                            summary = stringResource(R.string.hide_link_card_summary),
+                            checked = isHideLinkCard
+                        ) {
+                            onHideLinkCardChange(it)
                         }
                     }
                 }
