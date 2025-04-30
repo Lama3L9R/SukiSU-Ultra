@@ -27,16 +27,8 @@ apksign {
 
 
 android {
-
+    namespace = "zako.zako.zako"
     /**signingConfigs {
-        create("Debug") {
-            storeFile = file("D:\\other\\AndroidTool\\android_key\\keystore\\release-key.keystore")
-            storePassword = ""
-            keyAlias = ""
-            keyPassword = ""
-        }
-    }**/
-    namespace = "com.sukisu.ultra"
 
     buildTypes {
         release {
@@ -47,7 +39,7 @@ android {
         /**debug {
             signingConfig = signingConfigs.named("Debug").get() as ApkSigningConfig
         }**/
-    }
+    }*/
 
     buildFeatures {
         aidl = true
