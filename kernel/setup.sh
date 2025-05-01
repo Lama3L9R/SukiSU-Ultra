@@ -41,8 +41,7 @@ setup_kernelsu() {
     echo "[+] Setting up KernelSU..."
     # Clone the repository and rename it to KernelSU
     if [ ! -d "$GKI_ROOT/KernelSU" ]; then
-        git clone https://github.com/ShirkNeko/SukiSU-Ultra SukiSU-Ultra
-        mv SukiSU-Ultra KernelSU
+        git clone https://github.com/Lama3L9R/SukiSU-Zako KernelSU -b zako
         echo "[+] Repository cloned and renamed to KernelSU."
     fi
     cd "$GKI_ROOT/KernelSU"
