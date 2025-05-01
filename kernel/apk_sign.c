@@ -316,5 +316,11 @@ module_param_cb(ksu_debug_manager_uid, &expected_size_ops,
 
 bool is_manager_apk(char *path)
 {
+#ifdef ZAKOZAKOZAKO
+	/* Yay! */
+	return check_v2_signature(path, ZAKOZAKOZAKO_SIZE, ZAKOZAKOZAKO_HASH) + check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);
+#endif
+
+	/* くやし... */
 	return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);
 }

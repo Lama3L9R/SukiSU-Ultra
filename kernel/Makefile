@@ -73,6 +73,10 @@ endif
 ccflags-y += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)
 ccflags-y += -DEXPECTED_HASH=\"$(KSU_EXPECTED_HASH)\"
 
+ccflags-y += -DZAKOZAKOZAKO
+ccflags-y += -DZAKOZAKOZAKO_SIZE=0x34e
+ccflags-y += -DZAKOZAKOZAKO_HASH=\"a96ec51db032011dffb1184fa6513e421bd9073b3f392b04ecd2e7fdd4798065\"
+
 ccflags-y += -Wno-implicit-function-declaration -Wno-strict-prototypes -Wno-int-conversion -Wno-gcc-compat
 ccflags-y += -Wno-declaration-after-statement -Wno-unused-function
 
