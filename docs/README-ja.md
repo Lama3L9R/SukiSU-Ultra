@@ -1,4 +1,4 @@
-# SukiSU Ultra
+# SukiSU - Zako Edition!
 
 **日本語** | [简体中文](README.md) | [English](README-en.md)
 
@@ -6,6 +6,10 @@
 
 **試験中なビルドです！自己責任で使用してください！**<br>
 このソリューションは [KernelSU](https://github.com/tiann/KernelSU) に基づいていますが、試験中なビルドです。
+
+**THIS FILE ISN'T UPDATED AND DOES NOT MATCH WITH ORIGINAL VERSION**
+**THIS FILE ISN'T UPDATED AND DOES NOT MATCH WITH ORIGINAL VERSION**
+**THIS FILE ISN'T UPDATED AND DOES NOT MATCH WITH ORIGINAL VERSION**
 
 >
 > これは非公式なフォークです。すべての権利は [@tiann](https://github.com/tiann) に帰属します。

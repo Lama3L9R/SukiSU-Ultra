@@ -1,4 +1,4 @@
-# SukiSU Ultra
+# SukiSU - Zako Edition!
 
 **简体中文** | [English](README-en.md) | [日本語](README-ja.md)
 
@@ -9,7 +9,9 @@
 
 >
 > 这是非官方分支，保留所有权利 [@tiann](https://github.com/tiann)
-> 但是，我们将会在未来成为一个单独维护的KSU分支
+> 还有上游 [@ShirkNeko](https://github.com/ShirkNeko/SukiSU-Ultra)
+> 定期有空同步上游改动，外加一些我自己的私货
+> 不打算独立出去，只是 SukiSU 罢了
 >
 
 
@@ -18,6 +20,8 @@
 
 使用 susfs-dev 分支（已集成susfs，带非GKI设备的支持）
 
+**susfs-dev脚本还没改，别急哈**
+
 ```
 curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
 ```
@@ -25,7 +29,7 @@ curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/
 
 使用 main 分支
 ```
-curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
+curl -LSs "https://raw.githubusercontent.com/Lama3L9r/SukiSU-Zako/zako/kernel/setup.sh" | bash -s zako
 ```
 
 ## 如何集成 susfs
@@ -96,7 +100,7 @@ KPM模板地址: https://github.com/udochina/KPM-Build-Anywhere
 - `kernel` 目录下的文件是 [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)。
 - 除 `kernel` 目录外，所有其他部分均为 [GPL-3.0 或更高版本](https://www.gnu.org/licenses/gpl-3.0.html)。
 
-## 赞助名单
+## 赞助名单 (上游的，也欢迎通过 GitHub 赞助我)
 - [Ktouls](https://github.com/Ktouls) 非常感谢你给我带来的支持
 - [zaoqi123](https://github.com/zaoqi123) 请我喝奶茶也不错
 - [wswzgdg](https://github.com/wswzgdg) 非常感谢对此项目的支持
@@ -119,3 +123,5 @@ KPM模板地址: https://github.com/udochina/KPM-Build-Anywhere
 - [genuine](https://github.com/brevent/genuine/)：APK v2 签名验证
 - [Diamorphine](https://github.com/m0nad/Diamorphine)：一些 rootkit 技能
 - [KernelPatch](https://github.com/bmax121/KernelPatch): KernelPatch是APatch实现内核模块的关键部分
+- [SukiSU-Ultra](https://github.com/ShirkNeko/SukiSU-Ultra): 上游
+- [是我呢](https://github.com/Lama3L9R)

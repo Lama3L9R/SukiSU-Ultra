@@ -1,4 +1,4 @@
-# SukiSU Ultra
+# SukiSU - Zako Edition!
 
 **English** | [简体中文](README.md) | [日本語](README-ja.md)
 
@@ -6,6 +6,10 @@
 Android device root solution based on [KernelSU](https://github.com/tiann/KernelSU)
 
 **Experimental! Use at your own risk!** This solution is based on [KernelSU](https://github.com/tiann/KernelSU) and is experimental!
+
+**THIS FILE ISN'T UPDATED AND DOES NOT MATCH WITH ORIGINAL VERSION**
+**THIS FILE ISN'T UPDATED AND DOES NOT MATCH WITH ORIGINAL VERSION**
+**THIS FILE ISN'T UPDATED AND DOES NOT MATCH WITH ORIGINAL VERSION**
 
 >
 > This is an unofficial fork. All rights are reserved to [@tiann](https://github.com/tiann)
