@@ -1025,23 +1025,7 @@ private fun getDeviceModel(): String {
 }
 
 private fun checkKpmConfigured(): Boolean {
-    try {
-        val process = Runtime.getRuntime().exec("su -c cat /proc/config.gz")
-        val inputStream = process.inputStream
-        val gzipInputStream = GZIPInputStream(inputStream)
-        val reader = BufferedReader(InputStreamReader(gzipInputStream))
-
-        var line: String?
-        while (reader.readLine().also { line = it } != null) {
-            if (line?.contains("CONFIG_KPM=y") == true) {
-                return true
-            }
-        }
-        reader.close()
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-    return false
+    return true
 }
 
 @SuppressLint("UnnecessaryComposedModifier")

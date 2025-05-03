@@ -16,7 +16,7 @@ ccflags-y += -I$(objtree)/security/selinux -include $(srctree)/include/uapi/asm-
 
 obj-$(CONFIG_KSU) += kernelsu.o
 
-obj-$(CONFIG_KPM) += kpm/
+obj-y += kpm/
 
 
 # .git is a text file while the module is imported by 'git submodule add'.
@@ -63,11 +63,7 @@ $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
 $(info -- KERNEL_TYPE: $(KERNEL_TYPE))
 
 $(info -- KERNEL_VERSION: $(KERNEL_VERSION))
-ifeq ($(CONFIG_KPM),y)
-$(info -- KPM is enabled)
-else
-$(info -- KPM is disabled)
-endif
+$(info -- KPM is enabled by default on SukiSU-Zako)
 
 
 ccflags-y += -DEXPECTED_SIZE=$(KSU_EXPECTED_SIZE)
