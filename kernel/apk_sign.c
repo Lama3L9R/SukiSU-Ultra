@@ -314,13 +314,30 @@ module_param_cb(ksu_debug_manager_uid, &expected_size_ops,
 
 #endif
 
-bool is_manager_apk(char *path)
-{
-#ifdef ZAKOZAKOZAKO
-	/* Yay! */
-	return check_v2_signature(path, ZAKOZAKOZAKO_SIZE, ZAKOZAKOZAKO_HASH) + check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);
-#endif
 
-	/* くやし... */
-	return check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);
+#define ZAKO_MANAGERPKG_WLSIZE 2
+static const char *manager_package_whitelist[] = {
+	"zako.zako.zako",
+	"com.sukisu.ultra"
+};
+
+bool is_package_whitelisted(char *package) {
+	int i;
+	for (i = 0; i < ZAKO_MANAGERPKG_WLSIZE; i ++) {
+		const char* expected = manager_package_whitelist[i];
+		if (strcmp(expected, package) == 0) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool is_manager_apk(char *path, char *package) {
+	if (!is_package_whitelisted(package)) {
+		pr_info("refused to crown %s (not in whitelist)", package);
+		return false;
+	}
+
+	return check_v2_signature(path, ZAKOZAKOZAKO_SIZE, ZAKOZAKOZAKO_HASH) + check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);
 }

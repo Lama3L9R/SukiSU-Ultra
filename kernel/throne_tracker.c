@@ -62,14 +62,8 @@ static int get_pkg_from_apk_path(char *pkg, const char *path)
 	return 0;
 }
 
-static void crown_manager(const char *apk, struct list_head *uid_data)
+static void crown_manager(const char *apk, char *pkg, struct list_head *uid_data)
 {
-	char pkg[KSU_MAX_PACKAGE_NAME];
-	if (get_pkg_from_apk_path(pkg, apk) < 0) {
-		pr_err("Failed to get package name from apk path: %s\n", apk);
-		return;
-	}
-
 	pr_info("manager pkg: %s\n", pkg);
 
 #ifdef KSU_MANAGER_PACKAGE
@@ -177,6 +171,8 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 	} else {
 		if ((namelen == 8) && (strncmp(name, "base.apk", namelen) == 0)) {
 			struct apk_path_hash *pos, *n;
+			char pkg[KSU_MAX_PACKAGE_NAME];
+
 			unsigned int hash = full_name_hash(NULL, dirpath, strlen(dirpath));
 			list_for_each_entry(pos, &apk_path_hash_list, list) {
 				if (hash == pos->hash) {
@@ -185,11 +181,16 @@ FILLDIR_RETURN_TYPE my_actor(struct dir_context *ctx, const char *name,
 				}
 			}
 
-			bool is_manager = is_manager_apk(dirpath);
+			if (get_pkg_from_apk_path(pkg, dirpath) < 0) {
+				pr_err("Failed to get package name from apk path: %s\n", dirpath);
+				return FILLDIR_ACTOR_CONTINUE;
+			}
+
+			bool is_manager = is_manager_apk(dirpath, pkg);
 			pr_info("Found new base.apk at path: %s, is_manager: %d\n",
 				dirpath, is_manager);
 			if (is_manager) {
-				crown_manager(dirpath, my_ctx->private_data);
+				crown_manager(dirpath, pkg, my_ctx->private_data);
 				*my_ctx->stop = 1;
 
 				// Manager found, clear APK cache list
@@ -324,6 +325,12 @@ void track_throne()
 			pr_err("update_uid: package or uid is NULL!\n");
 			break;
 		}
+
+		// if (!is_package_whitelisted(package)) {
+			// line_start = pos;
+			// kfree(data);
+			// continue;
+		// }
 
 		u32 res;
 		if (kstrtou32(uid, 10, &res)) {
