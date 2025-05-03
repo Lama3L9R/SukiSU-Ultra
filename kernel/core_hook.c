@@ -287,13 +287,13 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		}
 
 		case CMD_GRANT_ROOT: {
-			ENFORCE_PERM(!is_allow_su());
+			ENFORCE_PERM(is_allow_su());
 
 			pr_info("allow root for: %d\n", current_uid().val);
-				escape_to_root();
-				if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
-					pr_err("grant_root: prctl reply error\n");
-				}
+			escape_to_root();
+			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
+				pr_err("grant_root: prctl reply error\n");
+			}
 			return 0;
 		}
 
