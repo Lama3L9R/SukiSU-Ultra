@@ -5,11 +5,12 @@ import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.tasks.PackageAndroidArtifact
 
 plugins {
-    alias(libs.plugins.agp.app)
-    alias(libs.plugins.kotlin)
-    alias(libs.plugins.compose.compiler)
-    alias(libs.plugins.ksp)
-    alias(libs.plugins.lsplugin.apksign)
+    id("com.android.application") version "8.9.2"
+    id("org.jetbrains.kotlin.android") version "2.1.10"
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.10"
+    id("com.google.devtools.ksp") version "2.1.10-1.0.30"
+
+    id("org.lsposed.lsplugin.apksign") version "1.4"
     id("kotlin-parcelize")
 
 
@@ -101,49 +102,38 @@ android {
 }
 
 dependencies {
-    implementation(libs.androidx.activity.compose)
-    implementation(libs.androidx.navigation.compose)
-
-    implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.compose.material.icons.extended)
-    implementation(libs.androidx.compose.material)
-    implementation(libs.androidx.compose.material3)
-    implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.tooling.preview)
-    implementation(libs.androidx.foundation)
-    implementation(libs.androidx.documentfile)
-
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-
-    implementation(libs.androidx.lifecycle.runtime.compose)
-    implementation(libs.androidx.lifecycle.runtime.ktx)
-    implementation(libs.androidx.lifecycle.viewmodel.compose)
-
-    implementation(libs.compose.destinations.core)
-    ksp(libs.compose.destinations.ksp)
-
-    implementation(libs.com.github.topjohnwu.libsu.core)
-    implementation(libs.com.github.topjohnwu.libsu.service)
-    implementation(libs.com.github.topjohnwu.libsu.io)
-
-    implementation(libs.dev.rikka.rikkax.parcelablelist)
-
-    implementation(libs.io.coil.kt.coil.compose)
-
-    implementation(libs.kotlinx.coroutines.core)
-
-    implementation(libs.me.zhanghai.android.appiconloader.coil)
-
-    implementation(libs.sheet.compose.dialogs.core)
-    implementation(libs.sheet.compose.dialogs.list)
-    implementation(libs.sheet.compose.dialogs.input)
-
-    implementation(libs.markdown)
-    implementation(libs.androidx.webkit)
-
-    implementation(libs.lsposed.cxx)
-
-    implementation(libs.com.github.topjohnwu.libsu.core)
+    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.compose.foundation:foundation")
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.navigation:navigation-compose:2.8.9")
+    implementation(platform("androidx.compose:compose-bom:2025.04.01"))
+    implementation("androidx.compose.material:material-icons-extended")
+    implementation("androidx.compose.material:material:1.8.0")
+    implementation("androidx.compose.material3:material3:1.3.2")
+    implementation("androidx.compose.ui:ui:1.8.0")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.8.0")
+    implementation("androidx.compose.foundation:foundation:1.7.8")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.webkit:webkit:1.13.0")
+    implementation("com.github.topjohnwu.libsu:core:6.0.0")
+    implementation("com.github.topjohnwu.libsu:service:6.0.0")
+    implementation("com.github.topjohnwu.libsu:io:6.0.0")
+    implementation("dev.rikka.rikkax.parcelablelist:parcelablelist:2.0.1")
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("me.zhanghai.android.appiconloader:appiconloader-coil:1.5.0")
+    implementation("io.github.raamcosta.compose-destinations:core:2.1.0")
+    ksp("io.github.raamcosta.compose-destinations:ksp:2.1.0")
+    implementation("com.maxkeppeler.sheets-compose-dialogs:core:1.3.0")
+    implementation("com.maxkeppeler.sheets-compose-dialogs:list:1.3.0")
+    implementation("com.maxkeppeler.sheets-compose-dialogs:input:1.3.0")
+    implementation("io.noties.markwon:core:4.6.2")
+    implementation("org.lsposed.libcxx:libcxx:27.0.12077973")
+    implementation("androidx.documentfile:documentfile:1.0.1")
 
 }

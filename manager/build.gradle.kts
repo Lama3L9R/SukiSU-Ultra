@@ -4,11 +4,11 @@ import com.android.build.gradle.api.AndroidBasePlugin
 import java.io.ByteArrayOutputStream
 
 plugins {
-    alias(libs.plugins.agp.app) apply false
-    alias(libs.plugins.agp.lib) apply false
-    alias(libs.plugins.kotlin) apply false
-    alias(libs.plugins.compose.compiler) apply false
-    alias(libs.plugins.lsplugin.cmaker)
+    id("com.android.application") version "8.9.2" apply false
+    id("com.android.library") version "8.9.2" apply false
+    id("org.jetbrains.kotlin.android") version "2.1.10" apply false
+    id("org.jetbrains.kotlin.plugin.compose") version "2.1.10" apply false
+    id("org.lsposed.lsplugin.cmaker") version "1.2"
 }
 
 cmaker {
