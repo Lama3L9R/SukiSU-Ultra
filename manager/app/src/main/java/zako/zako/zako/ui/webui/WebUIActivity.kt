@@ -29,21 +29,14 @@ class WebUIActivity : ComponentActivity() {
 
         // Enable edge to edge
         enableEdgeToEdge()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-        }
+        window.isNavigationBarContrastEnforced = false
 
         super.onCreate(savedInstanceState)
 
         val moduleId = intent.getStringExtra("id")!!
         val name = intent.getStringExtra("name")!!
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            @Suppress("DEPRECATION")
-            setTaskDescription(ActivityManager.TaskDescription("KernelSU - $name"))
-        } else {
-            val taskDescription = ActivityManager.TaskDescription.Builder().setLabel("KernelSU - $name").build()
-            setTaskDescription(taskDescription)
-        }
+        val taskDescription = ActivityManager.TaskDescription.Builder().setLabel("KernelSU - $name").build()
+        setTaskDescription(taskDescription)
 
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         WebView.setWebContentsDebuggingEnabled(prefs.getBoolean("enable_web_debugging", false))

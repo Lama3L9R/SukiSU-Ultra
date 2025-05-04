@@ -128,7 +128,7 @@ fun KernelSUTheme(
 
     // 创建颜色方案
     val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+        dynamicColor -> {
             if (darkTheme) createDynamicDarkColorScheme(context) else createDynamicLightColorScheme(context)
         }
         darkTheme -> createDarkColorScheme()

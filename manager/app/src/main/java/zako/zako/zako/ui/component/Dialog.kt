@@ -434,9 +434,7 @@ private fun MarkdownContent(content: String) {
             TextView(context).apply {
                 movementMethod = LinkMovementMethod.getInstance()
                 setSpannableFactory(NoCopySpannableFactory.getInstance())
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    breakStrategy = LineBreaker.BREAK_STRATEGY_SIMPLE
-                }
+                breakStrategy = LineBreaker.BREAK_STRATEGY_SIMPLE
                 hyphenationFrequency = Layout.HYPHENATION_FREQUENCY_NONE
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT

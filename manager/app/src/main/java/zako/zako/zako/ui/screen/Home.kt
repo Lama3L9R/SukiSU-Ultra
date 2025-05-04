@@ -413,11 +413,7 @@ private fun TopBar(
                     ) {
                         RebootDropdownItem(id = R.string.reboot)
 
-                        val pm = LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
-                        @Suppress("DEPRECATION")
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && pm?.isRebootingUserspaceSupported == true) {
-                            RebootDropdownItem(id = R.string.reboot_userspace, reason = "userspace")
-                        }
+                        RebootDropdownItem(id = R.string.reboot_userspace, reason = "userspace")
                         RebootDropdownItem(id = R.string.reboot_recovery, reason = "recovery")
                         RebootDropdownItem(id = R.string.reboot_bootloader, reason = "bootloader")
                         RebootDropdownItem(id = R.string.reboot_download, reason = "download")
@@ -998,9 +994,5 @@ private fun checkKpmConfigured(): Boolean {
 
 @SuppressLint("UnnecessaryComposedModifier")
 fun Modifier.disableOverscroll(): Modifier = composed {
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        this
-    } else {
-        this
-    }
+    this
 }

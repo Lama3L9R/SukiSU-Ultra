@@ -387,26 +387,24 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                         )
 
                         // 动态颜色开关
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                            SwitchItem(
-                                icon = Icons.Filled.ColorLens,
-                                title = stringResource(R.string.dynamic_color_title),
-                                summary = stringResource(R.string.dynamic_color_summary),
-                                checked = useDynamicColor
-                            ) { enabled ->
-                                useDynamicColor = enabled
-                                context.saveDynamicColorState(enabled)
-                            }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant
-                            )
+                        SwitchItem(
+                            icon = Icons.Filled.ColorLens,
+                            title = stringResource(R.string.dynamic_color_title),
+                            summary = stringResource(R.string.dynamic_color_summary),
+                            checked = useDynamicColor
+                        ) { enabled ->
+                            useDynamicColor = enabled
+                            context.saveDynamicColorState(enabled)
                         }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
 
                         // 只在未启用动态颜色时显示主题色选择
                         AnimatedVisibility(
-                            visible = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !useDynamicColor,
+                            visible = !useDynamicColor,
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically()
                         ) {
