@@ -56,6 +56,8 @@ object ThemeConfig {
     var backgroundImageLoaded by mutableStateOf(false)
     var needsResetOnThemeChange by mutableStateOf(false)
     var isThemeChanging by mutableStateOf(false)
+    var preventBackgroundRefresh by mutableStateOf(false)
+
     private var lastDarkModeState: Boolean? = null
     fun detectThemeChange(currentDarkMode: Boolean): Boolean {
         val isChanged = lastDarkModeState != null && lastDarkModeState != currentDarkMode
@@ -64,7 +66,9 @@ object ThemeConfig {
     }
 
     fun resetBackgroundState() {
-        backgroundImageLoaded = false
+        if (!preventBackgroundRefresh) {
+            backgroundImageLoaded = false
+        }
         isThemeChanging = true
     }
 }
@@ -92,14 +96,14 @@ fun KernelSUTheme(
             Log.d("ThemeSystem", "系统主题变化检测: 从 ${!systemIsDark} 变为 $systemIsDark")
             ThemeConfig.resetBackgroundState()
 
-            // 强制重新加载自定义背景
-            context.loadCustomBackground()
+            if (!ThemeConfig.preventBackgroundRefresh) {
+                context.loadCustomBackground()
+            }
 
-            // 调整卡片样式以适应新主题
             CardConfig.apply {
                 load(context)
                 if (!isCustomAlphaSet) {
-                    cardAlpha = if (systemIsDark) 0.35f else 0.80f
+                    cardAlpha = if (systemIsDark) 0.50f else 1f
                 }
                 save(context)
             }
@@ -108,14 +112,18 @@ fun KernelSUTheme(
 
     // 初始加载配置
     LaunchedEffect(Unit) {
-        context.loadCustomBackground()
+        context.loadThemeMode()
         context.loadThemeColors()
         context.loadDynamicColorState()
-        context.loadThemeMode()
         CardConfig.load(context)
 
-        // 立即将加载状态设为false，确保首次会触发加载动画
-        ThemeConfig.backgroundImageLoaded = false
+        if (!ThemeConfig.backgroundImageLoaded && !ThemeConfig.preventBackgroundRefresh) {
+            context.loadCustomBackground()
+            ThemeConfig.backgroundImageLoaded = false
+        }
+
+        ThemeConfig.preventBackgroundRefresh = context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+            .getBoolean("prevent_background_refresh", true)
     }
 
     // 创建颜色方案
@@ -134,15 +142,12 @@ fun KernelSUTheme(
     }
     CardConfig.updateShadowEnabled(!isDarkModeWithCustomBackground)
 
-    // 使用rememberSaveable保留背景URI状态，防止在主题切换时丢失
     val backgroundUri = rememberSaveable { mutableStateOf(ThemeConfig.customBackgroundUri) }
 
-    // 确保状态同步
     LaunchedEffect(ThemeConfig.customBackgroundUri) {
         backgroundUri.value = ThemeConfig.customBackgroundUri
     }
 
-    // 背景图加载器 - 使用保存的URI状态
     val bgImagePainter = backgroundUri.value?.let {
         rememberAsyncImagePainter(
             model = it,
@@ -155,11 +160,14 @@ fun KernelSUTheme(
                 Log.d("ThemeSystem", "背景图加载成功")
                 ThemeConfig.backgroundImageLoaded = true
                 ThemeConfig.isThemeChanging = false
+
+                ThemeConfig.preventBackgroundRefresh = true
+                context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+                    .edit { putBoolean("prevent_background_refresh", true) }
             }
         )
     }
 
-    // 背景透明度动画 - 使用更强健的动画配置
     val transition = updateTransition(
         targetState = ThemeConfig.backgroundImageLoaded,
         label = "bgTransition"
@@ -174,7 +182,6 @@ fun KernelSUTheme(
         }
     ) { loaded -> if (loaded) 1f else 0f }
 
-    // 清理函数，确保主题切换完成后重置状态
     DisposableEffect(systemIsDark) {
         onDispose {
             if (ThemeConfig.isThemeChanging) {
@@ -188,7 +195,6 @@ fun KernelSUTheme(
         typography = Typography
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
-            // 底色层 - 确保有底色
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -346,15 +352,18 @@ private fun createLightColorScheme() = lightColorScheme(
 )
 
 /**
- * 复制图片到应用内部存储
+ * 复制图片到应用内部存储并提升持久性
  */
 private fun Context.copyImageToInternalStorage(uri: Uri): Uri? {
     return try {
         val contentResolver: ContentResolver = contentResolver
         val inputStream: InputStream = contentResolver.openInputStream(uri) ?: return null
+
         val fileName = "custom_background.jpg"
         val file = File(filesDir, fileName)
-        val outputStream = FileOutputStream(file)
+
+        val backupFile = File(filesDir, "${fileName}.backup")
+        val outputStream = FileOutputStream(backupFile)
         val buffer = ByteArray(4 * 1024)
         var read: Int
 
@@ -365,6 +374,11 @@ private fun Context.copyImageToInternalStorage(uri: Uri): Uri? {
         outputStream.flush()
         outputStream.close()
         inputStream.close()
+
+        if (file.exists()) {
+            file.delete()
+        }
+        backupFile.renameTo(file)
 
         Uri.fromFile(file)
     } catch (e: Exception) {
@@ -383,13 +397,17 @@ fun Context.saveAndApplyCustomBackground(uri: Uri, transformation: BackgroundTra
         copyImageToInternalStorage(uri)
     }
 
+    // 保存到配置文件
     getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
         .edit {
             putString("custom_background", finalUri?.toString())
+            // 设置阻止刷新标志为false，允许新设置的背景加载一次
+            putBoolean("prevent_background_refresh", false)
         }
 
     ThemeConfig.customBackgroundUri = finalUri
     ThemeConfig.backgroundImageLoaded = false
+    ThemeConfig.preventBackgroundRefresh = false
     CardConfig.cardElevation = 0.dp
     CardConfig.isCustomBackgroundEnabled = true
 }
@@ -399,13 +417,23 @@ fun Context.saveAndApplyCustomBackground(uri: Uri, transformation: BackgroundTra
  */
 fun Context.saveCustomBackground(uri: Uri?) {
     val newUri = uri?.let { copyImageToInternalStorage(it) }
+
+    // 保存到配置文件
     getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
         .edit {
             putString("custom_background", newUri?.toString())
+            if (uri == null) {
+                // 如果清除背景，也重置阻止刷新标志
+                putBoolean("prevent_background_refresh", false)
+            } else {
+                // 设置阻止刷新标志为false，允许新设置的背景加载一次
+                putBoolean("prevent_background_refresh", false)
+            }
         }
 
     ThemeConfig.customBackgroundUri = newUri
     ThemeConfig.backgroundImageLoaded = false
+    ThemeConfig.preventBackgroundRefresh = false
 
     if (uri != null) {
         CardConfig.cardElevation = 0.dp
@@ -420,10 +448,14 @@ fun Context.loadCustomBackground() {
     val uriString = getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
         .getString("custom_background", null)
 
-    // 判断是否有实际变化，避免无谓的重新加载
     val newUri = uriString?.toUri()
-    if (ThemeConfig.customBackgroundUri?.toString() != newUri?.toString()) {
-        Log.d("ThemeSystem", "加载自定义背景: $uriString")
+    val preventRefresh = getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+        .getBoolean("prevent_background_refresh", false)
+
+    ThemeConfig.preventBackgroundRefresh = preventRefresh
+
+    if (!preventRefresh || ThemeConfig.customBackgroundUri?.toString() != newUri?.toString()) {
+        Log.d("ThemeSystem", "加载自定义背景: $uriString, 阻止刷新: $preventRefresh")
         ThemeConfig.customBackgroundUri = newUri
         ThemeConfig.backgroundImageLoaded = false
     }

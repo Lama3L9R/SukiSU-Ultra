@@ -299,7 +299,7 @@
     <string name="flash_failed_message">フラッシュに失敗しました</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM の修復またはインストール</string>
-    <string name="GKI_install_methods">GKI のインストール</string>
+    <string name="GKI_install_methods">GKI/non-GKI のインストール</string>
     <string name="kernel_version_log">カーネルのバージョン: %1$s</string>
     <string name="tool_version_log">パッチ適用ツールの使用: %1$s</string>
     <string name="configuration">設定</string>
@@ -324,4 +324,5 @@
     <string name="susfs_disabled">SuSFS 無効</string>
     <string name="background_set_success">背景の設定が成功しました</string>
     <string name="background_removed">カスタム背景を削除しました</string>
+    <string name="root_require_for_install">root 権限が必要</string>
 </resources>

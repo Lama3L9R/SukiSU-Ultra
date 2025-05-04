@@ -25,13 +25,16 @@ import com.ramcosta.composedestinations.spec.NavHostGraphSpec
 import com.ramcosta.composedestinations.spec.RouteOrDirection
 import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
-import io.zako.zako.UltraToolInstall
+import io.sukisu.ultra.UltraToolInstall
 import zako.zako.zako.Natives
 import zako.zako.zako.ksuApp
 import zako.zako.zako.ui.screen.BottomBarDestination
 import zako.zako.zako.ui.theme.*
 import zako.zako.zako.ui.theme.CardConfig.cardAlpha
 import zako.zako.zako.ui.util.*
+import androidx.core.content.edit
+import zako.zako.zako.ui.theme.CardConfig.cardElevation
+
 class MainActivity : ComponentActivity() {
     private inner class ThemeChangeContentObserver(
         handler: Handler,
@@ -44,7 +47,6 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         // Enable edge to edge
         enableEdgeToEdge()
 
@@ -54,8 +56,18 @@ class MainActivity : ComponentActivity() {
 
         super.onCreate(savedInstanceState)
 
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val isFirstRun = prefs.getBoolean("is_first_run", true)
+
+        if (isFirstRun) {
+            ThemeConfig.preventBackgroundRefresh = false
+            getSharedPreferences("theme_prefs", MODE_PRIVATE).edit {
+                putBoolean("prevent_background_refresh", false)
+            }
+            prefs.edit { putBoolean("is_first_run", false) }
+        }
+
         // 加载保存的背景设置
-        loadCustomBackground()
         loadThemeMode()
         loadThemeColors()
         loadDynamicColorState()
@@ -63,8 +75,10 @@ class MainActivity : ComponentActivity() {
 
         val contentObserver = ThemeChangeContentObserver(Handler(mainLooper)) {
             runOnUiThread {
-                ThemeConfig.backgroundImageLoaded = false
-                loadCustomBackground()
+                if (!ThemeConfig.preventBackgroundRefresh) {
+                    ThemeConfig.backgroundImageLoaded = false
+                    loadCustomBackground()
+                }
             }
         }
 
@@ -114,6 +128,22 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        CardConfig.save(applicationContext)
+        getSharedPreferences("theme_prefs", MODE_PRIVATE).edit() {
+            putBoolean("prevent_background_refresh", true)
+        }
+        ThemeConfig.preventBackgroundRefresh = true
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (!ThemeConfig.backgroundImageLoaded && !ThemeConfig.preventBackgroundRefresh) {
+            loadCustomBackground()
+        }
+    }
+
     private val destroyListeners = mutableListOf<() -> Unit>()
 
     override fun onDestroy() {
@@ -140,7 +170,7 @@ private fun BottomBar(navController: NavHostController) {
             containerColor = cardColor.copy(alpha = cardAlpha),
             scrolledContainerColor = containerColor.copy(alpha = cardAlpha)
         ).containerColor,
-        tonalElevation = 0.dp
+        tonalElevation = cardElevation
     ) {
         BottomBarDestination.entries.forEach { destination ->
             if (destination == BottomBarDestination.Kpm) {
@@ -168,7 +198,6 @@ private fun BottomBar(navController: NavHostController) {
                                     destination.iconNotSelected
                                 },
                                 contentDescription = stringResource(destination.label),
-                                tint = if (isCurrentDestOnBackStack) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         },
                         label = {

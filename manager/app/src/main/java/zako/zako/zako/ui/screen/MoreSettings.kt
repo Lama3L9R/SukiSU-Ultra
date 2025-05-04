@@ -312,11 +312,17 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
         )
     }
 
+    val cardColor = MaterialTheme.colorScheme.surfaceVariant
+    val cardAlphaUse = CardConfig.cardAlpha
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = { Text(stringResource(R.string.more_settings)) },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = cardColor.copy(alpha = cardAlphaUse),
+                    scrolledContainerColor = cardColor.copy(alpha = cardAlphaUse)),
                 navigationIcon = {
                     IconButton(onClick = { navigator.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack,
@@ -400,7 +406,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
 
                         // 只在未启用动态颜色时显示主题色选择
                         AnimatedVisibility(
-                            visible = !useDynamicColor,
+                            visible = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !useDynamicColor,
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically()
                         ) {
@@ -470,17 +476,25 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                         } else {
                                             context.saveCustomBackground(null)
                                             isCustomBackgroundEnabled = false
-                                            CardConfig.cardElevation = CardConfig.defaultElevation
-                                            CardConfig.cardAlpha = 0.80f
+                                            CardConfig.cardElevation
+                                            CardConfig.cardAlpha = 1f
                                             CardConfig.isCustomAlphaSet = false
                                             CardConfig.isCustomBackgroundEnabled = false
                                             saveCardConfig(context)
-                                            cardAlpha = 0.80f
+                                            cardAlpha = 1f
 
                                             // 重置其他相关设置
                                             ThemeConfig.needsResetOnThemeChange = true
+                                            ThemeConfig.preventBackgroundRefresh = false
 
-                                            // 显示成功提示
+                                            context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+                                                .edit {
+                                                    putBoolean(
+                                                        "prevent_background_refresh",
+                                                        false
+                                                    )
+                                                }
+
                                             Toast.makeText(
                                                 context,
                                                 context.getString(R.string.background_removed),
@@ -789,7 +803,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                             CardConfig.isUserDarkModeEnabled = true
                                             CardConfig.isUserLightModeEnabled = false
                                             if (!CardConfig.isCustomAlphaSet) {
-                                                CardConfig.cardAlpha = 0.35f
+                                                CardConfig.cardAlpha = 1f
                                             }
                                             CardConfig.save(context)
                                         }
@@ -798,7 +812,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                             CardConfig.isUserLightModeEnabled = true
                                             CardConfig.isUserDarkModeEnabled = false
                                             if (!CardConfig.isCustomAlphaSet) {
-                                                CardConfig.cardAlpha = 0.80f
+                                                CardConfig.cardAlpha = 1f
                                             }
                                             CardConfig.save(context)
                                         }

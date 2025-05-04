@@ -222,8 +222,8 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="failed_reboot">Reboot Failed</string>
-    <string name="batch_authorization">Bulk license</string>
-    <string name="batch_cancel_authorization">Batch cancel authorization</string>
+    <string name="batch_authorization">authorizations</string>
+    <string name="batch_cancel_authorization">withdraw</string>
     <string name="backup">Backup</string>
     <string name="color_yellow">Yellow</string>
     <string name="kpm">Kernel Module</string>
@@ -299,7 +299,7 @@
     <string name="flash_failed_message">Flash failed</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM repair/installation</string>
-    <string name="GKI_install_methods">GKI installation</string>
+    <string name="GKI_install_methods">GKI/non-GKI installation</string>
     <string name="kernel_version_log">Kernel version：%1$s</string>
     <string name="tool_version_log">Using the patching tool：%1$s</string>
     <string name="configuration">Configure</string>
@@ -324,4 +324,5 @@
     <string name="susfs_disabled">SuSFS disabled</string>
     <string name="background_set_success">Background set successfully</string>
     <string name="background_removed">Removed custom backgrounds</string>
+    <string name="root_require_for_install">Requires root privileges</string>
 </resources>

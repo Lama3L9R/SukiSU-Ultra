@@ -1,7 +1,13 @@
 package zako.zako.zako.ui.screen
 
+import android.annotation.SuppressLint
 import androidx.annotation.StringRes
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -25,16 +31,21 @@ import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -44,7 +55,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
@@ -63,13 +77,13 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AppProfileTemplateScreenDestination
 import com.ramcosta.composedestinations.generated.destinations.TemplateEditorScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import kotlinx.coroutines.launch
 import zako.zako.zako.Natives
 import zako.zako.zako.R
 import zako.zako.zako.ui.component.SwitchItem
 import zako.zako.zako.ui.component.profile.AppProfileConfig
 import zako.zako.zako.ui.component.profile.RootProfileConfig
 import zako.zako.zako.ui.component.profile.TemplateConfig
+import zako.zako.zako.ui.theme.CardConfig
 import zako.zako.zako.ui.util.LocalSnackbarHost
 import zako.zako.zako.ui.util.forceStopApp
 import zako.zako.zako.ui.util.getSepolicy
@@ -78,6 +92,7 @@ import zako.zako.zako.ui.util.restartApp
 import zako.zako.zako.ui.util.setSepolicy
 import zako.zako.zako.ui.viewmodel.SuperUserViewModel
 import zako.zako.zako.ui.viewmodel.getTemplateInfoById
+import kotlinx.coroutines.launch
 
 /**
  * @author weishu
@@ -107,9 +122,18 @@ fun AppProfileScreen(
         mutableStateOf(initialProfile)
     }
 
+    val cardColor = MaterialTheme.colorScheme.surfaceVariant
+    val cardAlpha = CardConfig.cardAlpha
+
     Scaffold(
         topBar = {
             TopBar(
+                title = appInfo.label,
+                packageName = packageName,
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = cardColor.copy(alpha = cardAlpha),
+                    scrolledContainerColor = cardColor.copy(alpha = cardAlpha)
+                ),
                 onBack = dropUnlessResumed { navigator.popBackStack() },
                 scrollBehavior = scrollBehavior
             )
@@ -181,22 +205,50 @@ private fun AppProfileInner(
     val isRootGranted = profile.allowSu
 
     Column(modifier = modifier) {
-        AppMenuBox(packageName) {
-            ListItem(
-                headlineContent = { Text(appLabel) },
-                supportingContent = { Text(packageName) },
-                leadingContent = appIcon,
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            AppMenuBox(packageName) {
+                ListItem(
+                    headlineContent = {
+                        Text(
+                            text = appLabel,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    },
+                    supportingContent = {
+                        Text(
+                            text = packageName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    leadingContent = appIcon,
+                )
+            }
+        }
+
+        ElevatedCard(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 8.dp),
+            shape = MaterialTheme.shapes.medium
+        ) {
+            SwitchItem(
+                icon = Icons.Filled.Security,
+                title = stringResource(id = R.string.superuser),
+                checked = isRootGranted,
+                onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
             )
         }
 
-        SwitchItem(
-            icon = Icons.Filled.Security,
-            title = stringResource(id = R.string.superuser),
-            checked = isRootGranted,
-            onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
-        )
-
-        Crossfade(targetState = isRootGranted, label = "") { current ->
+        Crossfade(
+            targetState = isRootGranted,
+            label = "RootAccess"
+        ) { current ->
             Column(
                 modifier = Modifier.padding(bottom = 6.dp + 48.dp + 6.dp /* SnackBar height */)
             ) {
@@ -211,42 +263,91 @@ private fun AppProfileInner(
                     var mode by rememberSaveable {
                         mutableStateOf(initialMode)
                     }
-                    ProfileBox(mode, true) {
-                        // template mode shouldn't change profile here!
-                        if (it == Mode.Default || it == Mode.Custom) {
-                            onProfileChange(profile.copy(rootUseDefault = it == Mode.Default))
+
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        ProfileBox(mode, true) {
+                            // template mode shouldn't change profile here!
+                            if (it == Mode.Default || it == Mode.Custom) {
+                                onProfileChange(profile.copy(rootUseDefault = it == Mode.Default))
+                            }
+                            mode = it
                         }
-                        mode = it
                     }
-                    Crossfade(targetState = mode, label = "") { currentMode ->
-                        if (currentMode == Mode.Template) {
-                            TemplateConfig(
-                                profile = profile,
-                                onViewTemplate = onViewTemplate,
-                                onManageTemplate = onManageTemplate,
-                                onProfileChange = onProfileChange
-                            )
-                        } else if (mode == Mode.Custom) {
-                            RootProfileConfig(
-                                fixedName = true,
-                                profile = profile,
-                                onProfileChange = onProfileChange
-                            )
+
+                    AnimatedVisibility(
+                        visible = mode != Mode.Default,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                Crossfade(targetState = mode, label = "ProfileMode") { currentMode ->
+                                    when (currentMode) {
+                                        Mode.Template -> {
+                                            TemplateConfig(
+                                                profile = profile,
+                                                onViewTemplate = onViewTemplate,
+                                                onManageTemplate = onManageTemplate,
+                                                onProfileChange = onProfileChange
+                                            )
+                                        }
+                                        Mode.Custom -> {
+                                            RootProfileConfig(
+                                                fixedName = true,
+                                                profile = profile,
+                                                onProfileChange = onProfileChange
+                                            )
+                                        }
+                                        else -> {}
+                                    }
+                                }
+                            }
                         }
                     }
                 } else {
                     val mode = if (profile.nonRootUseDefault) Mode.Default else Mode.Custom
-                    ProfileBox(mode, false) {
-                        onProfileChange(profile.copy(nonRootUseDefault = (it == Mode.Default)))
+
+                    ElevatedCard(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        ProfileBox(mode, false) {
+                            onProfileChange(profile.copy(nonRootUseDefault = (it == Mode.Default)))
+                        }
                     }
-                    Crossfade(targetState = mode, label = "") { currentMode ->
-                        val modifyEnabled = currentMode == Mode.Custom
-                        AppProfileConfig(
-                            fixedName = true,
-                            profile = profile,
-                            enabled = modifyEnabled,
-                            onProfileChange = onProfileChange
-                        )
+
+                    AnimatedVisibility(
+                        visible = mode == Mode.Custom,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        ElevatedCard(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp, vertical = 8.dp),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                AppProfileConfig(
+                                    fixedName = true,
+                                    profile = profile,
+                                    enabled = mode == Mode.Custom,
+                                    onProfileChange = onProfileChange
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -264,20 +365,51 @@ private enum class Mode(@StringRes private val res: Int) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun TopBar(
+    title: String,
+    packageName: String,
     onBack: () -> Unit,
+    colors: TopAppBarColors,
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     TopAppBar(
         title = {
-            Text(stringResource(R.string.profile))
+            Column {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = packageName,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.alpha(0.8f)
+                )
+            }
         },
+        colors = colors,
         navigationIcon = {
             IconButton(
-                onClick = onBack
-            ) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null) }
+                onClick = onBack,
+                colors = IconButtonDefaults.iconButtonColors(
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back)
+                )
+            }
         },
-        windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-        scrollBehavior = scrollBehavior
+        windowInsets = WindowInsets.safeDrawing.only(
+            WindowInsetsSides.Top + WindowInsetsSides.Horizontal
+        ),
+        scrollBehavior = scrollBehavior,
+        modifier = Modifier.shadow(
+            elevation = if ((scrollBehavior?.state?.overlappedFraction ?: 0f) > 0.01f)
+                4.dp else 0.dp,
+            spotColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+        )
     )
 }
 
@@ -287,40 +419,88 @@ private fun ProfileBox(
     hasTemplate: Boolean,
     onModeChange: (Mode) -> Unit,
 ) {
-    ListItem(
-        headlineContent = { Text(stringResource(R.string.profile)) },
-        supportingContent = { Text(mode.text) },
-        leadingContent = { Icon(Icons.Filled.AccountCircle, null) },
-    )
-    HorizontalDivider(thickness = Dp.Hairline)
-    ListItem(headlineContent = {
-        Row(
-            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            FilterChip(
-                selected = mode == Mode.Default,
-                label = { Text(stringResource(R.string.profile_default)) },
-                onClick = { onModeChange(Mode.Default) },
-            )
-            if (hasTemplate) {
-                FilterChip(
-                    selected = mode == Mode.Template,
-                    label = { Text(stringResource(R.string.profile_template)) },
-                    onClick = { onModeChange(Mode.Template) },
+    Column(modifier = Modifier.padding(vertical = 8.dp)) {
+        ListItem(
+            headlineContent = {
+                Text(
+                    text = stringResource(R.string.profile),
+                    style = MaterialTheme.typography.titleMedium
                 )
+            },
+            supportingContent = {
+                Text(
+                    text = mode.text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            leadingContent = {
+                Icon(
+                    imageVector = Icons.Filled.AccountCircle,
+                    contentDescription = null,
+                )
+            },
+        )
+
+        HorizontalDivider(
+            thickness = Dp.Hairline,
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+
+        ListItem(
+            headlineContent = {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                ) {
+                    FilterChip(
+                        selected = mode == Mode.Default,
+                        onClick = { onModeChange(Mode.Default) },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.profile_default),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
+                        shape = MaterialTheme.shapes.small
+                    )
+
+                    if (hasTemplate) {
+                        FilterChip(
+                            selected = mode == Mode.Template,
+                            onClick = { onModeChange(Mode.Template) },
+                            label = {
+                                Text(
+                                    text = stringResource(R.string.profile_template),
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            },
+                            shape = MaterialTheme.shapes.small
+                        )
+                    }
+
+                    FilterChip(
+                        selected = mode == Mode.Custom,
+                        onClick = { onModeChange(Mode.Custom) },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.profile_custom),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
+                        shape = MaterialTheme.shapes.small
+                    )
+                }
             }
-            FilterChip(
-                selected = mode == Mode.Custom,
-                label = { Text(stringResource(R.string.profile_custom)) },
-                onClick = { onModeChange(Mode.Custom) },
-            )
-        }
-    })
+        )
+    }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 private fun AppMenuBox(packageName: String, content: @Composable () -> Unit) {
-
     var expanded by remember { mutableStateOf(false) }
     var touchPoint: Offset by remember { mutableStateOf(Offset.Zero) }
     val density = LocalDensity.current
@@ -329,13 +509,14 @@ private fun AppMenuBox(packageName: String, content: @Composable () -> Unit) {
         Modifier
             .fillMaxSize()
             .pointerInput(Unit) {
-                detectTapGestures {
-                    touchPoint = it
-                    expanded = true
-                }
+                detectTapGestures(
+                    onLongPress = {
+                        touchPoint = it
+                        expanded = true
+                    }
+                )
             }
     ) {
-
         content()
 
         val (offsetX, offsetY) = with(density) {
@@ -349,43 +530,64 @@ private fun AppMenuBox(packageName: String, content: @Composable () -> Unit) {
                 expanded = false
             },
         ) {
-            DropdownMenuItem(
-                text = { Text(stringResource(id = R.string.launch_app)) },
+            AppMenuOption(
+                text = stringResource(id = R.string.launch_app),
                 onClick = {
                     expanded = false
                     launchApp(packageName)
-                },
+                }
             )
-            DropdownMenuItem(
-                text = { Text(stringResource(id = R.string.force_stop_app)) },
+
+            AppMenuOption(
+                text = stringResource(id = R.string.force_stop_app),
                 onClick = {
                     expanded = false
                     forceStopApp(packageName)
-                },
+                }
             )
-            DropdownMenuItem(
-                text = { Text(stringResource(id = R.string.restart_app)) },
+
+            AppMenuOption(
+                text = stringResource(id = R.string.restart_app),
                 onClick = {
                     expanded = false
                     restartApp(packageName)
-                },
+                }
             )
         }
     }
+}
+
+@Composable
+private fun AppMenuOption(text: String, onClick: () -> Unit) {
+    DropdownMenuItem(
+        text = {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        onClick = onClick
+    )
 }
 
 @Preview
 @Composable
 private fun AppProfilePreview() {
     var profile by remember { mutableStateOf(Natives.Profile("")) }
-    AppProfileInner(
-        packageName = "icu.nullptr.test",
-        appLabel = "Test",
-        appIcon = { Icon(Icons.Filled.Android, null) },
-        profile = profile,
-        onProfileChange = {
-            profile = it
-        },
-    )
+    Surface {
+        AppProfileInner(
+            packageName = "icu.nullptr.test",
+            appLabel = "Test",
+            appIcon = {
+                Icon(
+                    imageVector = Icons.Filled.Android,
+                    contentDescription = null,
+                )
+            },
+            profile = profile,
+            onProfileChange = {
+                profile = it
+            },
+        )
+    }
 }
-

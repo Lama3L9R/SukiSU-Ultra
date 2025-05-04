@@ -51,9 +51,10 @@ import zako.zako.zako.R
 import zako.zako.zako.*
 import zako.zako.zako.ui.component.*
 import zako.zako.zako.ui.theme.*
+import zako.zako.zako.ui.theme.CardConfig.cardAlpha
+import zako.zako.zako.ui.theme.CardConfig.cardElevation
 import zako.zako.zako.ui.util.LocalSnackbarHost
 import zako.zako.zako.ui.util.getBugreportFile
-import zako.zako.zako.ui.theme.CardConfig.cardAlpha
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -117,7 +118,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -190,7 +191,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -258,7 +259,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -357,7 +358,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -701,7 +702,7 @@ private fun TopBar(
     val cardAlpha = if (ThemeConfig.customBackgroundUri != null) {
         cardAlpha
     } else {
-        if (systemIsDark) 0.35f else 0.80f
+        if (systemIsDark) 0.8f else 1f
     }
 
     TopAppBar(

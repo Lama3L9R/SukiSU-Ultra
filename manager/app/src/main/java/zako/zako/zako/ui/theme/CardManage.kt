@@ -13,10 +13,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 object CardConfig {
-    val defaultElevation: Dp = 1.dp
+    val settingElevation: Dp = 4.dp
+    val customBackgroundElevation: Dp = 0.dp
 
-    var cardAlpha by mutableStateOf(0.80f)
-    var cardElevation by mutableStateOf(defaultElevation)
+    var cardAlpha by mutableStateOf(1f)
+    var cardElevation by mutableStateOf(settingElevation)
     var isShadowEnabled by mutableStateOf(true)
     var isCustomAlphaSet by mutableStateOf(false)
     var isUserDarkModeEnabled by mutableStateOf(false)
@@ -44,13 +45,13 @@ object CardConfig {
      */
     fun load(context: Context) {
         val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
-        cardAlpha = prefs.getFloat("card_alpha", 0.80f)
+        cardAlpha = prefs.getFloat("card_alpha", 1f)
         isCustomBackgroundEnabled = prefs.getBoolean("custom_background_enabled", false)
         isShadowEnabled = prefs.getBoolean("is_shadow_enabled", true)
-        cardElevation = if (isShadowEnabled) defaultElevation else 0.dp
         isCustomAlphaSet = prefs.getBoolean("is_custom_alpha_set", false)
         isUserDarkModeEnabled = prefs.getBoolean("is_user_dark_mode_enabled", false)
         isUserLightModeEnabled = prefs.getBoolean("is_user_light_mode_enabled", false)
+        updateShadowEnabled(isShadowEnabled)
     }
 
     /**
@@ -58,7 +59,13 @@ object CardConfig {
      */
     fun updateShadowEnabled(enabled: Boolean) {
         isShadowEnabled = enabled
-        cardElevation = if (enabled) defaultElevation else 0.dp
+        cardElevation = if (isCustomBackgroundEnabled && cardAlpha != 1f) {
+            customBackgroundElevation
+        } else if (enabled) {
+            settingElevation
+        } else {
+            customBackgroundElevation
+        }
     }
 
     /**
@@ -66,11 +73,9 @@ object CardConfig {
      */
     fun setDarkModeDefaults() {
         if (!isCustomAlphaSet) {
-            cardAlpha = 0.50f
+            cardAlpha = 1f
         }
-        if (!isShadowEnabled) {
-            cardElevation = 0.dp
-        }
+        updateShadowEnabled(isShadowEnabled)
     }
 }
 

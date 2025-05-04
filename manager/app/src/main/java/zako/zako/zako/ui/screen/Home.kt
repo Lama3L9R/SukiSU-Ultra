@@ -34,12 +34,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
@@ -99,6 +97,7 @@ import zako.zako.zako.getKernelVersion
 import zako.zako.zako.ksuApp
 import zako.zako.zako.ui.component.rememberConfirmDialog
 import zako.zako.zako.ui.theme.CardConfig
+import zako.zako.zako.ui.theme.CardConfig.cardElevation
 import zako.zako.zako.ui.theme.getCardColors
 import zako.zako.zako.ui.util.checkNewVersion
 import zako.zako.zako.ui.util.getKpmModuleCount
@@ -245,11 +244,11 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                 ) {
                     ElevatedCard(
                         colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-                        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
                         modifier = Modifier
                             .clip(MaterialTheme.shapes.medium)
                             .shadow(
-                                elevation = 0.dp,
+                                elevation = cardElevation,
                                 shape = MaterialTheme.shapes.medium,
                                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                             )
@@ -267,7 +266,6 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                             Icon(
                                 imageVector = Icons.Outlined.Info,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.padding(end = 12.dp)
                             )
                             Text(
@@ -283,10 +281,10 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             InfoCard()
 
             if (!isSimpleMode) {
-             if (!isHideLinkCard) {
-                 ContributionCard()
-                 DonateCard()
-                 LearnMoreCard()
+                if (!isHideLinkCard) {
+                    ContributionCard()
+                    DonateCard()
+                    LearnMoreCard()
                 }
             }
             Spacer(Modifier.height(16.dp))
@@ -365,7 +363,6 @@ fun RebootDropdownItem(@StringRes id: Int, reason: String = "") {
             Icon(
                 imageVector = Icons.Filled.Refresh,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
             )
         }
     )
@@ -393,12 +390,11 @@ private fun TopBar(
             scrolledContainerColor = cardColor.copy(alpha = cardAlpha)
         ),
         actions = {
-            if (kernelVersion.isGKI()) {
+            if (rootAvailable() || kernelVersion.isGKI()) {
                 IconButton(onClick = onInstallClick) {
                     Icon(
                         Icons.Filled.Archive,
                         contentDescription = stringResource(R.string.install),
-                        tint = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -409,7 +405,6 @@ private fun TopBar(
                     Icon(
                         Icons.Filled.Refresh,
                         contentDescription = stringResource(R.string.reboot),
-                        tint = MaterialTheme.colorScheme.primary
                     )
 
                     DropdownMenu(
@@ -444,22 +439,22 @@ private fun StatusCard(
     onClickInstall: () -> Unit = {}
 ) {
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .shadow(
-                elevation = 0.dp,
+                elevation = cardElevation,
                 shape = MaterialTheme.shapes.large,
-                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                spotColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f)
             )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable(enabled = kernelVersion.isGKI()) {
-                    if (kernelVersion.isGKI()) {
+                .clickable {
+                    if (rootAvailable() || kernelVersion.isGKI()) {
                         onClickInstall()
                     }
                 }
@@ -620,12 +615,12 @@ fun WarningCard(
 ) {
     ElevatedCard(
         colors = getCardColors(color),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .shadow(
-                elevation = 0.dp,
+                elevation = cardElevation,
                 shape = MaterialTheme.shapes.large,
                 spotColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
             )
@@ -660,14 +655,14 @@ fun ContributionCard() {
     val links = listOf("https://github.com/zako", "https://github.com/udochina")
 
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.tertiaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
             .clip(MaterialTheme.shapes.large)
             .shadow(
-                elevation = 0.dp,
+                elevation = cardElevation,
                 shape = MaterialTheme.shapes.large,
                 spotColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f)
             )
@@ -682,27 +677,18 @@ fun ContributionCard() {
                 .padding(24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Filled.Code,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(24.dp)
-            )
-
             Column {
                 Text(
                     text = stringResource(R.string.home_ContributionCard_kernelsu),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_click_to_ContributionCard_kernelsu),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
             }
         }
@@ -715,13 +701,13 @@ fun LearnMoreCard() {
     val url = stringResource(R.string.home_learn_kernelsu_url)
 
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.primaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .shadow(
-                elevation = 0.dp,
+                elevation = cardElevation,
                 shape = MaterialTheme.shapes.large,
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
             )
@@ -735,27 +721,18 @@ fun LearnMoreCard() {
                 .padding(24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Filled.School,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(24.dp)
-            )
-
             Column {
                 Text(
                     text = stringResource(R.string.home_learn_kernelsu),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_click_to_learn_kernelsu),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
             }
         }
@@ -767,13 +744,13 @@ fun DonateCard() {
     val uriHandler = LocalUriHandler.current
 
     ElevatedCard(
-        colors = getCardColors(MaterialTheme.colorScheme.secondaryContainer),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .shadow(
-                elevation = 0.dp,
+                elevation = cardElevation,
                 shape = MaterialTheme.shapes.large,
                 spotColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.1f)
             )
@@ -787,27 +764,18 @@ fun DonateCard() {
                 .padding(24.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = Icons.Filled.Favorite,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                modifier = Modifier
-                    .padding(end = 16.dp)
-                    .size(24.dp)
-            )
-
             Column {
                 Text(
                     text = stringResource(R.string.home_support_title),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.home_support_content),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.8f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                 )
             }
         }
@@ -823,12 +791,12 @@ private fun InfoCard() {
 
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHighest),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .shadow(
-                elevation = 0.dp,
+                elevation = cardElevation,
                 shape = MaterialTheme.shapes.large,
                 spotColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.05f)
             )
@@ -858,7 +826,7 @@ private fun InfoCard() {
                         imageVector = icon,
                         contentDescription = label,
                         modifier = Modifier.size(24.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                     )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(

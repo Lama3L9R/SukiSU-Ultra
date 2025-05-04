@@ -71,6 +71,7 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import zako.zako.zako.ui.theme.ThemeConfig
 import zako.zako.zako.R
+import zako.zako.zako.ui.theme.CardConfig.cardElevation
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -233,7 +234,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         Icon(
                             imageVector = Icons.Filled.MoreVert,
                             contentDescription = stringResource(id = R.string.settings),
-                            tint = MaterialTheme.colorScheme.primary
                         )
 
                         DropdownMenu(
@@ -294,7 +294,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                                     Icon(
                                         imageVector = Icons.Outlined.Download,
                                         contentDescription = stringResource(R.string.backup),
-                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
                                 onClick = {
@@ -308,7 +307,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                                     Icon(
                                         imageVector = Icons.Outlined.Refresh,
                                         contentDescription = stringResource(R.string.restore),
-                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
                                 onClick = {
@@ -343,7 +341,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                         Icon(
                             imageVector = Icons.Filled.Add,
                             contentDescription = moduleInstall,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     },
                     text = {
@@ -690,12 +687,12 @@ fun ModuleItem(
 ) {
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .shadow(
-                elevation = 0.dp,
+                elevation = cardElevation,
                 shape = MaterialTheme.shapes.large,
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
             )
@@ -919,7 +916,6 @@ fun ModuleItem(
                             modifier = Modifier.size(20.dp),
                             imageVector = Icons.Outlined.Delete,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onErrorContainer
                         )
                     } else {
                         Icon(

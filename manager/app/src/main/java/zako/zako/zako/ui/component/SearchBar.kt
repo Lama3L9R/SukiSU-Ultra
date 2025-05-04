@@ -63,7 +63,7 @@ fun SearchAppBar(
     var onSearch by remember { mutableStateOf(false) }
 
     // 获取卡片颜色和透明度
-    val cardColor = MaterialTheme.colorScheme.secondaryContainer
+    val cardColor = MaterialTheme.colorScheme.surfaceVariant
     val cardAlpha = CardConfig.cardAlpha
 
     if (onSearch) {

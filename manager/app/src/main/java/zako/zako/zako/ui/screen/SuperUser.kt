@@ -42,6 +42,7 @@ import zako.zako.zako.Natives
 import zako.zako.zako.ui.component.SearchAppBar
 import zako.zako.zako.ui.util.ModuleModify
 import zako.zako.zako.ui.viewmodel.SuperUserViewModel
+import zako.zako.zako.ui.theme.CardConfig.cardElevation
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
@@ -87,7 +88,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                         Icon(
                             imageVector = Icons.Filled.MoreVert,
                             contentDescription = stringResource(id = R.string.settings),
-                            tint = MaterialTheme.colorScheme.primary
                         )
 
                         DropdownMenu(expanded = showDropdown, onDismissRequest = {
@@ -99,7 +99,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     Icon(
                                         imageVector = Icons.Filled.Refresh,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
                                 onClick = {
@@ -124,7 +123,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                         imageVector = if (viewModel.showSystemApps)
                                             Icons.Filled.VisibilityOff else Icons.Filled.Visibility,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
                                 onClick = {
@@ -139,7 +137,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     Icon(
                                         imageVector = Icons.Filled.Save,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
                                 onClick = {
@@ -153,7 +150,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     Icon(
                                         imageVector = Icons.Filled.RestoreFromTrash,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 },
                                 onClick = {
@@ -178,8 +174,8 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
             ) {
                 Surface(
                     color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    tonalElevation = 0.dp,
-                    shadowElevation = 0.dp
+                    tonalElevation = cardElevation,
+                    shadowElevation = cardElevation
                 ) {
                     Row(
                         modifier = Modifier

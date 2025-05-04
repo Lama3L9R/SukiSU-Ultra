@@ -38,6 +38,7 @@ import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.net.*
 import android.app.Activity
+import zako.zako.zako.ui.theme.CardConfig.cardElevation
 
 /**
  * KPM 管理界面
@@ -290,7 +291,6 @@ fun KpmScreen(
                         Icon(
                             imageVector = Icons.Filled.Refresh,
                             contentDescription = stringResource(R.string.refresh),
-                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -309,7 +309,6 @@ fun KpmScreen(
                     Icon(
                         imageVector = Icons.Filled.Add,
                         contentDescription = stringResource(R.string.kpm_install),
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 },
                 text = {
@@ -346,7 +345,6 @@ fun KpmScreen(
                         Icon(
                             imageVector = Icons.Filled.Info,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
                             modifier = Modifier
                                 .padding(end = 16.dp)
                                 .size(24.dp)
@@ -654,12 +652,12 @@ private fun KpmModuleItem(
 
     Card(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
         modifier = Modifier
             .fillMaxWidth()
             .clip(MaterialTheme.shapes.large)
             .shadow(
-                elevation = 0.dp,
+                elevation = cardElevation,
                 shape = MaterialTheme.shapes.large,
                 spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
             )

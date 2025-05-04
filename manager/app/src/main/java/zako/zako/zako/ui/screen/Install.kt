@@ -15,7 +15,14 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
@@ -23,34 +30,71 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoFixHigh
 import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.maxkeppeker.sheets.core.models.base.Header
+import com.maxkeppeker.sheets.core.models.base.rememberUseCaseState
+import com.maxkeppeler.sheets.list.ListDialog
 import com.maxkeppeler.sheets.list.models.ListOption
+import com.maxkeppeler.sheets.list.models.ListSelection
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.FlashScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.navigation.EmptyDestinationsNavigator
 import zako.zako.zako.R
+import zako.zako.zako.flash.HorizonKernelFlashProgress
+import zako.zako.zako.flash.HorizonKernelState
+import zako.zako.zako.flash.HorizonKernelWorker
 import zako.zako.zako.ui.component.DialogHandle
 import zako.zako.zako.ui.component.SlotSelectionDialog
 import zako.zako.zako.ui.component.rememberConfirmDialog
 import zako.zako.zako.ui.component.rememberCustomDialog
-import zako.zako.zako.flash.HorizonKernelFlashProgress
-import zako.zako.zako.flash.HorizonKernelState
-import zako.zako.zako.flash.HorizonKernelWorker
-import zako.zako.zako.ui.theme.CardConfig
-import zako.zako.zako.ui.theme.ThemeConfig
+import zako.zako.zako.ui.theme.CardConfig.cardAlpha
+import zako.zako.zako.ui.theme.CardConfig.cardElevation
 import zako.zako.zako.ui.theme.getCardColors
-import zako.zako.zako.ui.util.*
+import zako.zako.zako.ui.util.LkmSelection
+import zako.zako.zako.ui.util.getCurrentKmi
+import zako.zako.zako.ui.util.getSupportedKmis
+import zako.zako.zako.ui.util.isAbDevice
+import zako.zako.zako.ui.util.isInitBoot
+import zako.zako.zako.ui.util.rootAvailable
+import zako.zako.zako.getKernelVersion
 
 /**
  * @author weishu
@@ -69,6 +113,8 @@ fun InstallScreen(navigator: DestinationsNavigator) {
     val horizonKernelState = remember { HorizonKernelState() }
     val flashState by horizonKernelState.state.collectAsState()
     val summary = stringResource(R.string.horizon_kernel_summary)
+    val kernelVersion = getKernelVersion()
+    val isGKI = kernelVersion.isGKI()
 
     val onFlashComplete = {
         showRebootDialog = true
@@ -133,7 +179,6 @@ fun InstallScreen(navigator: DestinationsNavigator) {
                 summary = summary
             )
             installMethod = horizonMethod
-            onInstall()
         }
     )
 
@@ -149,7 +194,7 @@ fun InstallScreen(navigator: DestinationsNavigator) {
     }
 
     val onClickNext = {
-        if (lkmSelection == LkmSelection.KmiNone && currentKmi.isBlank()) {
+        if (isGKI && lkmSelection == LkmSelection.KmiNone && currentKmi.isBlank()) {
             selectKmiDialog.show()
         } else {
             onInstall()
@@ -191,8 +236,10 @@ fun InstallScreen(navigator: DestinationsNavigator) {
                 .padding(innerPadding)
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
+                .padding(top = 12.dp)
         ) {
             SelectInstallMethod(
+                isGKI = isGKI,
                 onSelected = { method ->
                     if (method is InstallMethod.HorizonKernel && method.uri != null && method.slot == null) {
                         tempKernelUri = method.uri
@@ -218,32 +265,73 @@ fun InstallScreen(navigator: DestinationsNavigator) {
                     .padding(16.dp)
             ) {
                 (lkmSelection as? LkmSelection.LkmUri)?.let {
-                    Text(
-                        stringResource(
-                            id = R.string.selected_lkm,
-                            it.uri.lastPathSegment ?: "(file)"
-                        )
-                    )
-                }
-                (installMethod as? InstallMethod.HorizonKernel)?.let { method ->
-                    if (method.slot != null) {
-                        Text(
-                            stringResource(
-                                id = R.string.selected_slot,
-                                if (method.slot == "a") stringResource(id = R.string.slot_a)
-                                else stringResource(id = R.string.slot_b)
+                    ElevatedCard(
+                        colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
+                        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .clip(MaterialTheme.shapes.medium)
+                            .shadow(
+                                elevation = cardElevation,
+                                shape = MaterialTheme.shapes.medium,
+                                spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                             )
+                    ) {
+                        Text(
+                            text = stringResource(
+                                id = R.string.selected_lkm,
+                                it.uri.lastPathSegment ?: "(file)"
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(16.dp)
                         )
                     }
                 }
+
+                (installMethod as? InstallMethod.HorizonKernel)?.let { method ->
+                    if (method.slot != null) {
+                        ElevatedCard(
+                            colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
+                            elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 12.dp)
+                                .clip(MaterialTheme.shapes.medium)
+                                .shadow(
+                                    elevation = cardElevation,
+                                    shape = MaterialTheme.shapes.medium,
+                                    spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                                )
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    id = R.string.selected_slot,
+                                    if (method.slot == "a") stringResource(id = R.string.slot_a)
+                                    else stringResource(id = R.string.slot_b)
+                                ),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(16.dp)
+                            )
+                        }
+                    }
+                }
+
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     enabled = installMethod != null && !flashState.isFlashing,
-                    onClick = onClickNext
+                    onClick = onClickNext,
+                    shape = MaterialTheme.shapes.medium,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f),
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
                 ) {
                     Text(
                         stringResource(id = R.string.install_next),
-                        fontSize = MaterialTheme.typography.bodyMedium.fontSize
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
@@ -305,7 +393,10 @@ sealed class InstallMethod {
 }
 
 @Composable
-private fun SelectInstallMethod(onSelected: (InstallMethod) -> Unit = {}) {
+private fun SelectInstallMethod(
+    isGKI: Boolean = false,
+    onSelected: (InstallMethod) -> Unit = {}
+) {
     val rootAvailable = rootAvailable()
     val isAbDevice = isAbDevice()
     val horizonKernelSummary = stringResource(R.string.horizon_kernel_summary)
@@ -393,114 +484,256 @@ private fun SelectInstallMethod(onSelected: (InstallMethod) -> Unit = {}) {
     var LKMExpanded by remember { mutableStateOf(false) }
     var GKIExpanded by remember { mutableStateOf(false) }
 
-    Column {
-        ListItem(
-            leadingContent = { Icon(Icons.Filled.AutoFixHigh, null) },
-            headlineContent = { Text(stringResource(R.string.Lkm_install_methods)) },
-            modifier = Modifier.clickable {
-                LKMExpanded = !LKMExpanded
-            }
-        )
-        radioOptions.take(3).forEach { option ->
-            AnimatedVisibility(
-                visible = LKMExpanded,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
+    Column(
+        modifier = Modifier.padding(horizontal = 16.dp)
+    ) {
+        // LKM 安装/修补
+        if (isGKI && rootAvailable) {
+            ElevatedCard(
+                colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
+                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .shadow(
+                        elevation = cardElevation,
+                        shape = MaterialTheme.shapes.large,
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    )
             ) {
-                Column {
-                    val interactionSource = remember { MutableInteractionSource() }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .toggleable(
-                                value = option.javaClass == selectedOption?.javaClass,
-                                onValueChange = { onClick(option) },
-                                role = Role.RadioButton,
-                                indication = LocalIndication.current,
-                                interactionSource = interactionSource
-                            )
-                    ) {
-                        RadioButton(
-                            selected = option.javaClass == selectedOption?.javaClass,
-                            onClick = { onClick(option) },
-                            interactionSource = interactionSource
+                ListItem(
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.AutoFixHigh,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Column(
-                            modifier = Modifier.padding(vertical = 12.dp)
-                        ) {
-                            Text(
-                                text = stringResource(id = option.label),
-                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                fontFamily = MaterialTheme.typography.titleMedium.fontFamily,
-                                fontStyle = MaterialTheme.typography.titleMedium.fontStyle
-                            )
-                            option.summary?.let {
-                                Text(
-                                    text = it,
-                                    fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                    fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
-                                    fontStyle = MaterialTheme.typography.bodySmall.fontStyle
-                                )
+                    },
+                    headlineContent = {
+                        Text(
+                            stringResource(R.string.Lkm_install_methods),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        LKMExpanded = !LKMExpanded
+                    }
+                )
+
+                AnimatedVisibility(
+                    visible = LKMExpanded,
+                    enter = fadeIn() + expandVertically(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            bottom = 16.dp
+                        )
+                    ) {
+                        radioOptions.take(3).forEach { option ->
+                            val interactionSource = remember { MutableInteractionSource() }
+                            Surface(
+                                color = if (option.javaClass == selectedOption?.javaClass)
+                                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = cardAlpha)
+                                else
+                                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = cardAlpha),
+                                shape = MaterialTheme.shapes.medium,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .toggleable(
+                                            value = option.javaClass == selectedOption?.javaClass,
+                                            onValueChange = { onClick(option) },
+                                            role = Role.RadioButton,
+                                            indication = LocalIndication.current,
+                                            interactionSource = interactionSource
+                                        )
+                                        .padding(vertical = 8.dp, horizontal = 12.dp)
+                                ) {
+                                    RadioButton(
+                                        selected = option.javaClass == selectedOption?.javaClass,
+                                        onClick = null,
+                                        interactionSource = interactionSource,
+                                        colors = RadioButtonDefaults.colors(
+                                            selectedColor = MaterialTheme.colorScheme.primary,
+                                            unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    )
+                                    Column(
+                                        modifier = Modifier
+                                            .padding(start = 10.dp)
+                                            .weight(1f)
+                                    ) {
+                                        Text(
+                                            text = stringResource(id = option.label),
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        option.summary?.let {
+                                            Text(
+                                                text = it,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
             }
         }
-    }
-    Column {
-        ListItem(
-            leadingContent = { Icon(Icons.Filled.FileUpload, null) },
-            headlineContent = { Text(stringResource(R.string.GKI_install_methods)) },
-            modifier = Modifier.clickable {
-                GKIExpanded = !GKIExpanded
-            }
-        )
-        AnimatedVisibility(
-            visible = GKIExpanded,
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp)
-        ) {
-            Column {
-                radioOptions.drop(3).forEach { option ->
-                    val interactionSource = remember { MutableInteractionSource() }
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .toggleable(
-                                value = option.javaClass == selectedOption?.javaClass,
-                                onValueChange = { onClick(option) },
-                                role = Role.RadioButton,
-                                indication = LocalIndication.current,
-                                interactionSource = interactionSource
-                            )
-                    ) {
-                        RadioButton(
-                            selected = option.javaClass == selectedOption?.javaClass,
-                            onClick = { onClick(option) },
-                            interactionSource = interactionSource
+
+        // anykernel3 刷写
+        if (rootAvailable) {
+            ElevatedCard(
+                colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
+                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .shadow(
+                        elevation = cardElevation,
+                        shape = MaterialTheme.shapes.large,
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    )
+            ) {
+                ListItem(
+                    leadingContent = {
+                        Icon(
+                            Icons.Filled.FileUpload,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Column(
-                            modifier = Modifier.padding(vertical = 12.dp)
-                        ) {
-                            Text(
-                                text = stringResource(id = option.label),
-                                fontSize = MaterialTheme.typography.titleMedium.fontSize,
-                                fontFamily = MaterialTheme.typography.titleMedium.fontFamily,
-                                fontStyle = MaterialTheme.typography.titleMedium.fontStyle
-                            )
-                            option.summary?.let {
-                                Text(
-                                    text = it,
-                                    fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                    fontFamily = MaterialTheme.typography.bodySmall.fontFamily,
-                                    fontStyle = MaterialTheme.typography.bodySmall.fontStyle
-                                )
+                    },
+                    headlineContent = {
+                        Text(
+                            stringResource(R.string.GKI_install_methods),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        GKIExpanded = !GKIExpanded
+                    }
+                )
+
+                AnimatedVisibility(
+                    visible = GKIExpanded,
+                    enter = fadeIn() + expandVertically(),
+                    exit = shrinkVertically() + fadeOut()
+                ) {
+                    Column(
+                        modifier = Modifier.padding(
+                            start = 16.dp,
+                            end = 16.dp,
+                            bottom = 16.dp
+                        )
+                    ) {
+                        if (radioOptions.size > 3) {
+                            radioOptions.drop(3).forEach { option ->
+                                val interactionSource = remember { MutableInteractionSource() }
+                                Surface(
+                                    color = if (option.javaClass == selectedOption?.javaClass)
+                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = cardAlpha)
+                                    else
+                                        MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = cardAlpha),
+                                    shape = MaterialTheme.shapes.medium,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp)
+                                        .clip(MaterialTheme.shapes.medium)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .toggleable(
+                                                value = option.javaClass == selectedOption?.javaClass,
+                                                onValueChange = { onClick(option) },
+                                                role = Role.RadioButton,
+                                                indication = LocalIndication.current,
+                                                interactionSource = interactionSource
+                                            )
+                                            .padding(vertical = 8.dp, horizontal = 12.dp)
+                                    ) {
+                                        RadioButton(
+                                            selected = option.javaClass == selectedOption?.javaClass,
+                                            onClick = null,
+                                            interactionSource = interactionSource,
+                                            colors = RadioButtonDefaults.colors(
+                                                selectedColor = MaterialTheme.colorScheme.primary,
+                                                unselectedColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        )
+                                        Column(
+                                            modifier = Modifier
+                                                .padding(start = 10.dp)
+                                                .weight(1f)
+                                        ) {
+                                            Text(
+                                                text = stringResource(id = option.label),
+                                                style = MaterialTheme.typography.bodyLarge
+                                            )
+                                            option.summary?.let {
+                                                Text(
+                                                    text = it,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                }
+            }
+        }
+
+        // 没有root
+        if (!rootAvailable) {
+            ElevatedCard(
+                colors = getCardColors(MaterialTheme.colorScheme.errorContainer),
+                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp)
+                    .clip(MaterialTheme.shapes.large)
+                    .shadow(
+                        elevation = cardElevation,
+                        shape = MaterialTheme.shapes.large,
+                        spotColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                    )
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.AutoFixHigh,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier
+                            .padding(end = 16.dp)
+                    )
+                    Text(
+                        text = stringResource(R.string.root_require_for_install),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onErrorContainer
+                    )
                 }
             }
         }
@@ -514,77 +747,33 @@ fun rememberSelectKmiDialog(onSelected: (String?) -> Unit): DialogHandle {
         val supportedKmi by produceState(initialValue = emptyList<String>()) {
             value = getSupportedKmis()
         }
-        val listOptions = supportedKmi.map { value ->
+        val options = supportedKmi.map { value ->
             ListOption(
-                titleText = value,
-                subtitleText = null,
-                icon = null
+                titleText = value
             )
         }
 
-        var selection: String? = null
-        val cardColor = if (!ThemeConfig.useDynamicColor) {
-            ThemeConfig.currentTheme.ButtonContrast
-        } else {
-            MaterialTheme.colorScheme.secondaryContainer
-        }
+        var selection by remember { mutableStateOf<String?>(null) }
+        val backgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest
 
-        AlertDialog(
-            onDismissRequest = {
+        MaterialTheme(
+            colorScheme = MaterialTheme.colorScheme.copy(
+                surface = backgroundColor
+            )
+        ) {
+            ListDialog(state = rememberUseCaseState(visible = true, onFinishedRequest = {
+                onSelected(selection)
+            }, onCloseRequest = {
                 dismiss()
-            },
-            title = {
-                Text(text = stringResource(R.string.select_kmi))
-            },
-            text = {
-                Column {
-                    listOptions.forEachIndexed { index, option ->
-                        Row(
-                            modifier = Modifier
-                                .clickable {
-                                    selection = supportedKmi[index]
-                                }
-                                .padding(vertical = 8.dp)
-                        ) {
-                            Column {
-                                Text(text = option.titleText)
-                                option.subtitleText?.let {
-                                    Text(
-                                        text = it,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        if (selection != null) {
-                            onSelected(selection)
-                        }
-                        dismiss()
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        dismiss()
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-            },
-            containerColor = getCardColors(cardColor.copy(alpha = 0.9f)).containerColor.copy(alpha = 0.9f),
-            shape = MaterialTheme.shapes.medium,
-            tonalElevation = 0.dp
-        )
+            }), header = Header.Default(
+                title = stringResource(R.string.select_kmi),
+            ), selection = ListSelection.Single(
+                showRadioButtons = true,
+                options = options,
+            ) { _, option ->
+                selection = option.titleText
+            })
+        }
     }
 }
 
@@ -595,18 +784,26 @@ private fun TopBar(
     onLkmUpload: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    val cardColor = MaterialTheme.colorScheme.secondaryContainer
-    val cardAlpha = CardConfig.cardAlpha
+    val cardColor = MaterialTheme.colorScheme.surfaceVariant
+    val cardAlpha = cardAlpha
 
     TopAppBar(
-        title = { Text(stringResource(R.string.install)) },
+        title = {
+            Text(
+                stringResource(R.string.install),
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = cardColor.copy(alpha = cardAlpha),
             scrolledContainerColor = cardColor.copy(alpha = cardAlpha)
         ),
         navigationIcon = {
             IconButton(onClick = onBack) {
-                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                Icon(
+                    Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = stringResource(R.string.back)
+                )
             }
         },
         windowInsets = WindowInsets.safeDrawing.only(
