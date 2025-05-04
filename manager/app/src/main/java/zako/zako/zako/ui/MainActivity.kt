@@ -14,7 +14,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
@@ -25,7 +24,6 @@ import com.ramcosta.composedestinations.spec.NavHostGraphSpec
 import com.ramcosta.composedestinations.spec.RouteOrDirection
 import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
-import io.sukisu.ultra.UltraToolInstall
 import zako.zako.zako.Natives
 import zako.zako.zako.ksuApp
 import zako.zako.zako.ui.screen.BottomBarDestination
@@ -33,6 +31,7 @@ import zako.zako.zako.ui.theme.*
 import zako.zako.zako.ui.theme.CardConfig.cardAlpha
 import zako.zako.zako.ui.util.*
 import androidx.core.content.edit
+import io.zako.zako.UltraToolInstall
 import zako.zako.zako.ui.theme.CardConfig.cardElevation
 
 class MainActivity : ComponentActivity() {
