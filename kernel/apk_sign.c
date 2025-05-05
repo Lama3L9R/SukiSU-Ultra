@@ -321,6 +321,8 @@ static const char *manager_package_whitelist[] = {
 	"com.sukisu.ultra"
 };
 
+bool zako_sverify = true;
+
 bool is_package_whitelisted(char *package) {
 	int i;
 	for (i = 0; i < ZAKO_MANAGERPKG_WLSIZE; i ++) {
@@ -337,6 +339,10 @@ bool is_manager_apk(char *path, char *package) {
 	if (!is_package_whitelisted(package)) {
 		pr_info("refused to crown %s (not in whitelist)", package);
 		return false;
+	}
+
+	if (!zako_sverify) {
+		return true;
 	}
 
 	return check_v2_signature(path, ZAKOZAKOZAKO_SIZE, ZAKOZAKOZAKO_HASH) + check_v2_signature(path, EXPECTED_SIZE, EXPECTED_HASH);

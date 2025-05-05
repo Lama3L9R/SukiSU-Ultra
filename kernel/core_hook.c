@@ -47,7 +47,7 @@
 
 #include "kpm/kpm.h"
 
-#define ENFORCE_PERM(i) if (!i) return 0;
+#define ENFORCE_PERM(i) if (!i) { return 0; }
 
 static bool ksu_module_mounted = false;
 
@@ -246,6 +246,8 @@ static void nuke_ext4_sysfs() {
 	ext4_unregister_sysfs(sb);
 }
 
+extern bool zako_sverify;
+
 int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 		     unsigned long arg4, unsigned long arg5)
 {
@@ -270,7 +272,8 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 
 	if (!from_root && !from_manager) {
 		// only root or manager can access this interface
-		return 0;
+		pr_info("prctl: request %lu denied! root: %i manager: %i", arg2, from_root, from_manager);
+        return 0;
 	}
 
 #ifdef CONFIG_KSU_DEBUG
@@ -515,6 +518,48 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 				pr_err("prctl reply error, cmd: %lu\n", arg2);
 			}
 	
+			return 0;
+		}
+
+		/* ZakoSU */
+
+		case CMD_ZAKO_ZAKOAPI: {
+			ENFORCE_PERM(from_root);
+
+			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
+				pr_err("check_zakoapi: prctl reply error\n");
+			}
+
+			return 0;
+		}
+
+		case CMD_ZAKO_SET_SVERIFY: {
+			ENFORCE_PERM(from_root);
+
+			zako_sverify = arg3;
+			
+			if (zako_sverify) {
+				pr_info("zako_sverify: enabled");
+			} else {
+				pr_info("zako_sverify: disabled");
+			}
+
+			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
+				pr_err("check_zakoapi: prctl reply error\n");
+			}
+
+			return 0;
+		}
+
+		case CMD_ZAKO_TRACKTHRONE: {
+			ENFORCE_PERM(from_root);
+
+			track_throne();
+
+			if (copy_to_user(result, &reply_ok, sizeof(reply_ok))) {
+				pr_err("check_zakoapi: prctl reply error\n");
+			}
+
 			return 0;
 		}
 
