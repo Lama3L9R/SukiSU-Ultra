@@ -6,8 +6,6 @@
 
 **实验性! 使用风险自负!**
 
-
->
 > 这是非官方分支，保留所有权利 [@tiann](https://github.com/tiann)
 >
 > 还有上游 [@ShirkNeko](https://github.com/ShirkNeko/SukiSU-Ultra)
@@ -16,8 +14,8 @@
 > 不打算独立出去，只是 SukiSU 罢了
 >
 
-
 ## 如何添加
+
 在内核源码的根目录下执行以下命令：
 
 使用 susfs-dev 分支（已集成susfs，带非GKI设备的支持）
@@ -39,28 +37,28 @@ curl -LSs "https://raw.githubusercontent.com/Lama3L9r/SukiSU-Zako/zako/kernel/se
 改了一堆内核内容没合到susfs分支，暂时不支持，人话：没做完别急
 
 ## 钩子方法
+
 - 此部分引用自 [rsuntk 的钩子方法](https://github.com/rsuntk/KernelSU)
 
 1. **KPROBES 钩子：**
-    - 此方法仅支持 GKI 2.0 (5.10 - 6.x) 内核, 所有非 GKI 2.0 内核都必须使用手动钩子
     - 用于可加载内核模块 (LKM)
     - GKI 2.0 内核的默认钩子方法
     - 需要 `CONFIG_KPROBES=y`
+
 2. **手动钩子：**
-    - 对于 GKI 2.0 (5.10 - 6.x) 内核，需要在对应设备的 defconfig 文件中添加 `CONFIG_KSU_MANUAL_HOOK=y` 并确保使用 `#ifdef CONFIG_KSU_MANUAL_HOOK` 而不是 `#ifdef CONFIG_KSU` 来保护 KernelSU 钩子
     - 标准的 KernelSU 钩子：https://kernelsu.org/guide/how-to-integrate-for-non-gki.html#manually-modify-the-kernel-source
     - backslashxx 的 syscall 手动钩子：https://github.com/backslashxx/KernelSU/issues/5
-    - 部分手动集成 KPROBES 的非 GKI 2.0 设备不需要手动 VFS 钩子 `new_hook.patch` 补丁
+    - 非 GKI 内核的默认挂钩方法
+    - 需要 `CONFIG_KSU_MANUAL_HOOK=y`
 
+## KPM 支持
 
-## KPM支持
-
-- 我们基于KernelPatch去掉了和KSU重复的功能，保留了KPM支持
-- 我们将会引入更多的兼容APatch的函数来确保KPM功能的完整性
-
+- 我们基于 KernelPatch 去掉了和 KSU 重复的功能，仅保留了 KPM 支持
+- 我们将会引入更多的兼容 APatch 的函数来确保 KPM 功能的完整性
 
 开源地址: https://github.com/ShirkNeko/SukiSU_KernelPatch_patch
 
+KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 
 KPM模板地址: https://github.com/udochina/KPM-Build-Anywhere
 
@@ -77,7 +75,7 @@ KPM模板地址: https://github.com/udochina/KPM-Build-Anywhere
 3. [App Profile](https://kernelsu.org/guide/app-profile.html)：将 root 权限锁在笼子里
 4. 恢复对非 GKI 2.0 内核的支持
 5. 更多自定义功能
-6. 对KPM内核模块的支持
+6. 对 KPM 内核模块的支持
 7. Zako~ Zako~ Zako~
 8. WIP 禁止过检测：强制给所有检测器 APP 挂载 SU 且不可关闭
 9. 我的个人私货
@@ -113,7 +111,7 @@ KPM模板地址: https://github.com/udochina/KPM-Build-Anywhere
 - [Magisk](https://github.com/topjohnwu/Magisk)：强大的 root 工具
 - [genuine](https://github.com/brevent/genuine/)：APK v2 签名验证
 - [Diamorphine](https://github.com/m0nad/Diamorphine)：一些 rootkit 技能
-- [KernelPatch](https://github.com/bmax121/KernelPatch): KernelPatch是APatch实现内核模块的关键部分
+- [KernelPatch](https://github.com/bmax121/KernelPatch): KernelPatch 是 APatch 实现内核模块的关键部分
 - [SukiSU-Ultra](https://github.com/ShirkNeko/SukiSU-Ultra): 上游
 - [是我呢](https://github.com/Lama3L9R): 嗯。是我。
 - [是我的小号呢](https://github.com/lamadaemon): 嗯。还是我。

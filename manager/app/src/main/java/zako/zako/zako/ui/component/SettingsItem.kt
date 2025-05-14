@@ -11,8 +11,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import com.dergoogler.mmrl.ui.component.LabelItem
+import com.dergoogler.mmrl.ui.component.text.TextRow
 
 @Composable
 fun SwitchItem(
@@ -21,9 +24,11 @@ fun SwitchItem(
     summary: String? = null,
     checked: Boolean,
     enabled: Boolean = true,
-    onCheckedChange: (Boolean) -> Unit
+    beta: Boolean = false,
+    onCheckedChange: (Boolean) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
+    val stateAlpha = remember(checked, enabled) { Modifier.alpha(if (enabled) 1f else 0.5f) }
 
     ListItem(
         modifier = Modifier
@@ -36,10 +41,30 @@ fun SwitchItem(
                 onValueChange = onCheckedChange
             ),
         headlineContent = {
-            Text(title)
+            TextRow(
+                leadingContent = if (beta) {
+                    {
+                        LabelItem(
+                            modifier = Modifier.then(stateAlpha),
+                            text = "Beta"
+                        )
+                    }
+                } else null
+            ) {
+                Text(
+                    modifier = Modifier.then(stateAlpha),
+                    text = title,
+                )
+            }
         },
         leadingContent = icon?.let {
-            { Icon(icon, title) }
+            {
+                Icon(
+                    modifier = Modifier.then(stateAlpha),
+                    imageVector = icon,
+                    contentDescription = title
+                )
+            }
         },
         trailingContent = {
             Switch(
@@ -51,7 +76,10 @@ fun SwitchItem(
         },
         supportingContent = {
             if (summary != null) {
-                Text(summary)
+                Text(
+                    modifier = Modifier.then(stateAlpha),
+                    text = summary
+                )
             }
         }
     )

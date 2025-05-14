@@ -48,7 +48,6 @@ fun ImageEditorDialog(
     var offsetY by remember { mutableFloatStateOf(0f) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val density = LocalDensity.current
     var lastScale by remember { mutableFloatStateOf(1f) }
     var lastOffsetX by remember { mutableFloatStateOf(0f) }
     var lastOffsetY by remember { mutableFloatStateOf(0f) }

@@ -56,11 +56,6 @@ fun KpmScreen(
     val scope = rememberCoroutineScope()
     val snackBarHost = remember { SnackbarHostState() }
     val confirmDialog = rememberConfirmDialog()
-    val cardColor = if (!ThemeConfig.useDynamicColor) {
-        ThemeConfig.currentTheme.ButtonContrast
-    } else {
-        MaterialTheme.colorScheme.primaryContainer
-    }
 
     val moduleConfirmContentMap = viewModel.moduleList.associate { module ->
         val moduleFileName = module.id
@@ -317,7 +312,6 @@ fun KpmScreen(
                         color = MaterialTheme.colorScheme.onPrimaryContainer
                     )
                 },
-                containerColor = cardColor,
                 contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                 expanded = true,
             )

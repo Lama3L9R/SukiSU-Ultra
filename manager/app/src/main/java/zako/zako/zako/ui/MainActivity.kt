@@ -1,5 +1,6 @@
 package zako.zako.zako.ui
 
+import android.content.Context
 import android.database.ContentObserver
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
@@ -24,6 +26,7 @@ import com.ramcosta.composedestinations.spec.NavHostGraphSpec
 import com.ramcosta.composedestinations.spec.RouteOrDirection
 import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
 import com.ramcosta.composedestinations.utils.rememberDestinationsNavigator
+import io.zako.zako.UltraToolInstall
 import zako.zako.zako.Natives
 import zako.zako.zako.ksuApp
 import zako.zako.zako.ui.screen.BottomBarDestination
@@ -31,8 +34,8 @@ import zako.zako.zako.ui.theme.*
 import zako.zako.zako.ui.theme.CardConfig.cardAlpha
 import zako.zako.zako.ui.util.*
 import androidx.core.content.edit
-import io.zako.zako.UltraToolInstall
 import zako.zako.zako.ui.theme.CardConfig.cardElevation
+import zako.zako.zako.ui.webui.initPlatform
 
 class MainActivity : ComponentActivity() {
     private inner class ThemeChangeContentObserver(
@@ -46,6 +49,9 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 应用DPI设置（仅对当前应用生效）
+        applyCustomDpi()
+
         // Enable edge to edge
         enableEdgeToEdge()
 
@@ -101,6 +107,11 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 val snackBarHostState = remember { SnackbarHostState() }
 
+                // pre-init platform to faster start WebUI X activities
+                LaunchedEffect(Unit) {
+                    initPlatform()
+                }
+
                 Scaffold(
                     bottomBar = { BottomBar(navController) },
                     contentWindowInsets = WindowInsets(0, 0, 0, 0)
@@ -125,10 +136,30 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // 应用自定义DPI设置（仅对当前应用生效）
+    private fun applyCustomDpi() {
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val customDpi = prefs.getInt("app_dpi", 0)
+
+        if (customDpi > 0) {
+            try {
+                val resources = resources
+                val metrics = resources.displayMetrics
+
+                // 仅更新应用内显示，不影响系统状态栏
+                metrics.density = customDpi / 160f
+                metrics.scaledDensity = customDpi / 160f
+                metrics.densityDpi = customDpi
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
     override fun onPause() {
         super.onPause()
         CardConfig.save(applicationContext)
-        getSharedPreferences("theme_prefs", MODE_PRIVATE).edit() {
+        getSharedPreferences("theme_prefs", MODE_PRIVATE).edit {
             putBoolean("prevent_background_refresh", true)
         }
         ThemeConfig.preventBackgroundRefresh = true
@@ -159,6 +190,10 @@ private fun BottomBar(navController: NavHostController) {
     val containerColor = MaterialTheme.colorScheme.surfaceVariant
     val cardColor = MaterialTheme.colorScheme.surfaceVariant
 
+    // 检查是否显示KPM
+    val showKpmInfo = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        .getBoolean("show_kpm_info", true)
+
     NavigationBar(
         modifier = Modifier.windowInsetsPadding(
             WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal)
@@ -171,7 +206,7 @@ private fun BottomBar(navController: NavHostController) {
     ) {
         BottomBarDestination.entries.forEach { destination ->
             if (destination == BottomBarDestination.Kpm) {
-                if (kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error")) {
+                if (kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error") && showKpmInfo) {
                     if (!fullFeatured && destination.rootRequired) return@forEach
                     val isCurrentDestOnBackStack by navController.isRouteOnBackStackAsState(destination.direction)
                     NavigationBarItem(

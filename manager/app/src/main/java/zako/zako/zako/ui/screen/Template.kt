@@ -62,7 +62,6 @@ import com.ramcosta.composedestinations.result.getOr
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import zako.zako.zako.R
-import zako.zako.zako.ui.theme.ThemeConfig
 import zako.zako.zako.ui.viewmodel.TemplateViewModel
 import zako.zako.zako.ui.theme.CardConfig
 
@@ -81,11 +80,6 @@ fun AppProfileTemplateScreen(
     val viewModel = viewModel<TemplateViewModel>()
     val scope = rememberCoroutineScope()
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
-    val cardColor = if (!ThemeConfig.useDynamicColor) {
-        ThemeConfig.currentTheme.ButtonContrast
-    } else {
-        MaterialTheme.colorScheme.secondaryContainer
-    }
 
     LaunchedEffect(Unit) {
         if (viewModel.templateList.isEmpty()) {
@@ -164,7 +158,6 @@ fun AppProfileTemplateScreen(
                 },
                 icon = { Icon(Icons.Filled.Add, null) },
                 text = { Text(stringResource(id = R.string.app_profile_template_create)) },
-                containerColor = cardColor.copy(alpha = 1f),
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer
             )
         },

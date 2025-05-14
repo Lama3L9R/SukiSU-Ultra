@@ -63,10 +63,6 @@ fun Context.applyTransformationToBitmap(bitmap: Bitmap, transformation: Backgrou
     val safeScale = maxOf(0.1f, transformation.scale)
     matrix.postScale(safeScale, safeScale)
 
-    // 计算中心点
-    val centerX = targetWidth / 2f
-    val centerY = targetHeight / 2f
-
     // 计算偏移量，确保不会出现负最大值的问题
     val widthDiff = (bitmap.width * safeScale - targetWidth)
     val heightDiff = (bitmap.height * safeScale - targetHeight)

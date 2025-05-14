@@ -49,7 +49,7 @@ sealed class ThemeColors {
         override val OnPrimaryContainer = Color(0xFF0A3049)
         override val OnSecondaryContainer = Color(0xFF0D3C61)
         override val OnTertiaryContainer = Color(0xFF071D41)
-        override val ButtonContrast = Color(0xFF1976D2)
+        override val ButtonContrast = Color(0xFF2196F3)
 
         override val Surface = Color(0xFFF5F9FF)
         override val SurfaceVariant = Color(0xFFEDF5FE)
@@ -81,7 +81,7 @@ sealed class ThemeColors {
         override val OnPrimaryContainer = Color(0xFF0A280D)
         override val OnSecondaryContainer = Color(0xFF0E2912)
         override val OnTertiaryContainer = Color(0xFF051B07)
-        override val ButtonContrast = Color(0xFF2E7D32)
+        override val ButtonContrast = Color(0xFF43A047)
 
         override val Surface = Color(0xFFF6FBF6)
         override val SurfaceVariant = Color(0xFFEDF7EE)
@@ -113,7 +113,7 @@ sealed class ThemeColors {
         override val OnPrimaryContainer = Color(0xFF2A0934)
         override val OnSecondaryContainer = Color(0xFF3C0F50)
         override val OnTertiaryContainer = Color(0xFF1D0830)
-        override val ButtonContrast = Color(0xFF8E24AA)
+        override val ButtonContrast = Color(0xFF9C27B0)
 
         override val Surface = Color(0xFFFCF6FF)
         override val SurfaceVariant = Color(0xFFF5EEFA)
@@ -145,7 +145,7 @@ sealed class ThemeColors {
         override val OnPrimaryContainer = Color(0xFF351F00)
         override val OnSecondaryContainer = Color(0xFF3D2800)
         override val OnTertiaryContainer = Color(0xFF2E1500)
-        override val ButtonContrast = Color(0xFFEF6C00)
+        override val ButtonContrast = Color(0xFFFF9800)
 
         override val Surface = Color(0xFFFFF8F3)
         override val SurfaceVariant = Color(0xFFFFF0E6)
@@ -177,7 +177,7 @@ sealed class ThemeColors {
         override val OnPrimaryContainer = Color(0xFF3B0819)
         override val OnSecondaryContainer = Color(0xFF3B0819)
         override val OnTertiaryContainer = Color(0xFF2B0516)
-        override val ButtonContrast = Color(0xFFD81B60)
+        override val ButtonContrast = Color(0xFFE91E63)
 
         override val Surface = Color(0xFFFFF7F9)
         override val SurfaceVariant = Color(0xFFFCEEF2)
@@ -209,7 +209,7 @@ sealed class ThemeColors {
         override val OnPrimaryContainer = Color(0xFF1A2327)
         override val OnSecondaryContainer = Color(0xFF1A2327)
         override val OnTertiaryContainer = Color(0xFF121A1D)
-        override val ButtonContrast = Color(0xFF546E7A)
+        override val ButtonContrast = Color(0xFF607D8B)
 
         override val Surface = Color(0xFFF6F9FB)
         override val SurfaceVariant = Color(0xFFEEF2F4)
@@ -241,7 +241,7 @@ sealed class ThemeColors {
         override val OnPrimaryContainer = Color(0xFF332A00)
         override val OnSecondaryContainer = Color(0xFF332A00)
         override val OnTertiaryContainer = Color(0xFF221200)
-        override val ButtonContrast = Color(0xFFFFB300)
+        override val ButtonContrast = Color(0xFFFFC107)
 
         override val Surface = Color(0xFFFFFAF3)
         override val SurfaceVariant = Color(0xFFFFF7E6)

@@ -70,7 +70,7 @@ fun SwitchItem(
                     text = it,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 3,
+                    maxLines = Int.MAX_VALUE,
                     overflow = TextOverflow.Ellipsis
                 )
             }

@@ -133,15 +133,13 @@ class HorizonKernelWorker(
             state.updateStep(context.getString(R.string.horizon_flashing))
             state.updateProgress(0.7f)
 
-            // 获取原始槽位信息
-            if (slot != null) {
+            val isAbDevice = isAbDevice()
+
+            if (isAbDevice && slot != null) {
                 state.updateStep(context.getString(R.string.horizon_getting_original_slot))
                 state.updateProgress(0.72f)
                 originalSlot = runCommandGetOutput(true, "getprop ro.boot.slot_suffix")
-            }
 
-            // 设置目标槽位
-            if (!slot.isNullOrEmpty()) {
                 state.updateStep(context.getString(R.string.horizon_setting_target_slot))
                 state.updateProgress(0.74f)
                 runCommand(true, "resetprop -n ro.boot.slot_suffix _$slot")
@@ -149,8 +147,7 @@ class HorizonKernelWorker(
 
             flash()
 
-            // 恢复原始槽位
-            if (!originalSlot.isNullOrEmpty()) {
+            if (isAbDevice && !originalSlot.isNullOrEmpty()) {
                 state.updateStep(context.getString(R.string.horizon_restoring_original_slot))
                 state.updateProgress(0.8f)
                 runCommand(true, "resetprop ro.boot.slot_suffix $originalSlot")
@@ -165,13 +162,23 @@ class HorizonKernelWorker(
         } catch (e: Exception) {
             state.setError(e.message ?: context.getString(R.string.horizon_unknown_error))
 
-            // 恢复原始槽位
-            if (!originalSlot.isNullOrEmpty()) {
+            if (isAbDevice() && !originalSlot.isNullOrEmpty()) {
                 state.updateStep(context.getString(R.string.horizon_restoring_original_slot))
                 state.updateProgress(0.8f)
                 runCommand(true, "resetprop ro.boot.slot_suffix $originalSlot")
             }
         }
+    }
+
+    // 检查设备是否为AB分区设备
+    private fun isAbDevice(): Boolean {
+        val abUpdate = runCommandGetOutput(true, "getprop ro.build.ab_update")?.trim() ?: ""
+        if (abUpdate.equals("false", ignoreCase = true) || abUpdate.isEmpty()) {
+            return false
+        }
+
+        val slotSuffix = runCommandGetOutput(true, "getprop ro.boot.slot_suffix")
+        return !slotSuffix.isNullOrEmpty()
     }
 
     private fun cleanup() {
@@ -198,10 +205,18 @@ class HorizonKernelWorker(
     private fun patch() {
         val kernelVersion = runCommandGetOutput(true, "cat /proc/version")
         val versionRegex = """\d+\.\d+\.\d+""".toRegex()
-        val version = versionRegex.find(kernelVersion)?.value ?: ""
-        val toolName = when {
-            version.startsWith("5.10.") -> "5_10"
-            else -> "5_15+"
+        val version = kernelVersion?.let { versionRegex.find(it) }?.value ?: ""
+        val toolName = if (version.isNotEmpty()) {
+            val parts = version.split('.')
+            if (parts.size >= 2) {
+                val major = parts[0].toIntOrNull() ?: 0
+                val minor = parts[1].toIntOrNull() ?: 0
+                if (major < 5 || (major == 5 && minor <= 10)) "5_10" else "5_15+"
+            } else {
+                "5_15+"
+            }
+        } else {
+            "5_15+"
         }
         val toolPath = "${context.filesDir.absolutePath}/mkbootfs"
         AssetsUtil.exportFiles(context, "$toolName-mkbootfs", toolPath)
@@ -283,7 +298,7 @@ class HorizonKernelWorker(
         }
     }
 
-    private fun runCommandGetOutput(su: Boolean, cmd: String): String {
+    private fun runCommandGetOutput(su: Boolean, cmd: String): String? {
         val process = ProcessBuilder(if (su) "su" else "sh")
             .redirectErrorStream(true)
             .start()

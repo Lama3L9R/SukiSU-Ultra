@@ -166,7 +166,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
         snackbarHost = { SnackbarHost(snackBarHostState) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         bottomBar = {
-            // 批量操作按钮，直接放在底部栏
             AnimatedVisibility(
                 visible = viewModel.showBatchActions && viewModel.selectedApps.isNotEmpty(),
                 enter = slideInVertically(initialOffsetY = { it }),
@@ -181,15 +180,13 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         OutlinedButton(
                             onClick = {
-                                // 修改为重新赋值为空集合
                                 viewModel.selectedApps = emptySet()
                                 viewModel.showBatchActions = false
                             },
-                            modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.outlinedButtonColors(
                                 contentColor = MaterialTheme.colorScheme.primary
                             )
@@ -197,9 +194,9 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(stringResource(android.R.string.cancel))
                         }
 
@@ -209,7 +206,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     viewModel.updateBatchPermissions(true)
                                 }
                             },
-                            modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.primary
                             )
@@ -217,9 +213,9 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                             Icon(
                                 imageVector = Icons.Filled.Check,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(stringResource(R.string.batch_authorization))
                         }
 
@@ -229,7 +225,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     viewModel.updateBatchPermissions(false)
                                 }
                             },
-                            modifier = Modifier.weight(1f),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.error
                             )
@@ -237,9 +232,9 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                             Icon(
                                 imageVector = Icons.Filled.Block,
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(16.dp)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(stringResource(R.string.batch_cancel_authorization))
                         }
                     }

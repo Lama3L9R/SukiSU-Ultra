@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 
 /**
  * 槽位选择对话框组件
- * 用于HorizonKernel刷写时选择目标槽位
+ * 用于Kernel刷写时选择目标槽位
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,11 +47,7 @@ fun SlotSelectionDialog(
     }
 
     if (show) {
-        val cardColor = if (!ThemeConfig.useDynamicColor) {
-            ThemeConfig.currentTheme.ButtonContrast
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        }
+        val cardColor = MaterialTheme.colorScheme.surfaceContainerHighest
 
         AlertDialog(
             onDismissRequest = onDismiss,

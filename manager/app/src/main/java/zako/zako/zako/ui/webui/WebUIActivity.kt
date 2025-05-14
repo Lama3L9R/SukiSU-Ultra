@@ -15,9 +15,11 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
 import androidx.webkit.WebViewAssetLoader
+import com.dergoogler.mmrl.platform.model.ModId
 import com.topjohnwu.superuser.Shell
 import zako.zako.zako.ui.util.createRootShell
 import java.io.File
+import com.dergoogler.mmrl.webui.interfaces.WXOptions
 
 @SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity() {
@@ -75,7 +77,7 @@ class WebUIActivity : ComponentActivity() {
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
             settings.allowFileAccess = false
-            webviewInterface = WebViewInterface(this@WebUIActivity, this, moduleDir)
+            webviewInterface = WebViewInterface(WXOptions(this@WebUIActivity, this, ModId(moduleId)))
             addJavascriptInterface(webviewInterface, "ksu")
             setWebViewClient(webViewClient)
             loadUrl("https://mui.kernelsu.org/index.html")

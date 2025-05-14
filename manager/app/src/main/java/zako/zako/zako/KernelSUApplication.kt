@@ -3,6 +3,7 @@ package zako.zako.zako
 import android.app.Application
 import coil.Coil
 import coil.ImageLoader
+import com.dergoogler.mmrl.platform.Platform
 import me.zhanghai.android.appiconloader.coil.AppIconFetcher
 import me.zhanghai.android.appiconloader.coil.AppIconKeyer
 import java.io.File
@@ -14,6 +15,8 @@ class KernelSUApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         ksuApp = this
+
+        Platform.setHiddenApiExemptions()
 
         val context = this
         val iconSize = resources.getDimensionPixelSize(android.R.dimen.app_icon_size)

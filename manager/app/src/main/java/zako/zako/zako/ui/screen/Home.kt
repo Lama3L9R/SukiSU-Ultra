@@ -95,6 +95,7 @@ import zako.zako.zako.Natives
 import zako.zako.zako.R
 import zako.zako.zako.getKernelVersion
 import zako.zako.zako.ksuApp
+import zako.zako.zako.ui.component.KsuIsValid
 import zako.zako.zako.ui.component.rememberConfirmDialog
 import zako.zako.zako.ui.theme.CardConfig
 import zako.zako.zako.ui.theme.CardConfig.cardElevation
@@ -132,6 +133,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     var isHideOtherInfo by rememberSaveable { mutableStateOf(false) }
     var isHideSusfsStatus by rememberSaveable { mutableStateOf(false) }
     var isHideLinkCard by rememberSaveable { mutableStateOf(false) }
+    var showKpmInfo by rememberSaveable { mutableStateOf(true) }
 
     // 从 SharedPreferences 加载简洁模式状态
     LaunchedEffect(Unit) {
@@ -149,6 +151,9 @@ fun HomeScreen(navigator: DestinationsNavigator) {
 
         isHideLinkCard = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
             .getBoolean("is_hide_link_card", false)
+
+        showKpmInfo = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+            .getBoolean("show_kpm_info", true)
     }
 
     val kernelVersion = getKernelVersion()
@@ -400,17 +405,18 @@ private fun TopBar(
             }
 
             var showDropdown by remember { mutableStateOf(false) }
-            if (Natives.isKsuValid(ksuApp.packageName)) {
-                IconButton(onClick = { showDropdown = true }) {
+            KsuIsValid {
+                IconButton(onClick = {
+                    showDropdown = true
+                }) {
                     Icon(
-                        Icons.Filled.Refresh,
-                        contentDescription = stringResource(R.string.reboot),
+                        imageVector = Icons.Filled.Refresh,
+                        contentDescription = stringResource(id = R.string.reboot)
                     )
 
-                    DropdownMenu(
-                        expanded = showDropdown,
-                        onDismissRequest = { showDropdown = false }
-                    ) {
+                    DropdownMenu(expanded = showDropdown, onDismissRequest = {
+                        showDropdown = false
+                    }) {
                         RebootDropdownItem(id = R.string.reboot)
 
                         RebootDropdownItem(id = R.string.reboot_userspace, reason = "userspace")
@@ -481,6 +487,9 @@ private fun StatusCard(
                     val isHideSusfsStatus = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
                         .getBoolean("is_hide_susfs_status", false)
 
+                    val showKpmInfo = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
+                        .getBoolean("show_kpm_info", true)
+
                     Icon(
                         Icons.Outlined.CheckCircle,
                         contentDescription = stringResource(R.string.home_working),
@@ -520,7 +529,7 @@ private fun StatusCard(
                             )
 
                             val kpmVersion = getKpmVersion()
-                            if (kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error")) {
+                            if (kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error") && showKpmInfo) {
                                 Spacer(Modifier.height(4.dp))
                                 Text(
                                     text = stringResource(R.string.home_kpm_module, getKpmModuleCount()),
@@ -648,7 +657,7 @@ fun WarningCard(
 @Composable
 fun ContributionCard() {
     val uriHandler = LocalUriHandler.current
-    val links = listOf("https://github.com/zako", "https://github.com/udochina")
+    val links = listOf("https://github.com/ShirkNeko", "https://github.com/udochina")
 
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHigh),
@@ -784,6 +793,8 @@ private fun InfoCard() {
     val context = LocalContext.current
     val isSimpleMode = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
         .getBoolean("is_simple_mode", false)
+    val showKpmInfo = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
+        .getBoolean("show_kpm_info", true)
 
     ElevatedCard(
         colors = getCardColors(MaterialTheme.colorScheme.surfaceContainerHighest),
@@ -885,22 +896,25 @@ private fun InfoCard() {
                     val kpmVersion = getKpmVersion()
                     val isKpmConfigured = checkKpmConfigured()
 
-                    val displayVersion = if (kpmVersion.isEmpty() || kpmVersion.startsWith("Error")) {
-                        val statusText = if (isKpmConfigured) {
-                            stringResource(R.string.kernel_patched)
+                    // 根据showKpmInfo决定是否显示KPM信息
+                    if (showKpmInfo) {
+                        val displayVersion = if (kpmVersion.isEmpty() || kpmVersion.startsWith("Error")) {
+                            val statusText = if (isKpmConfigured) {
+                                stringResource(R.string.kernel_patched)
+                            } else {
+                                stringResource(R.string.kernel_not_enabled)
+                            }
+                            "${stringResource(R.string.not_supported)} ($statusText)"
                         } else {
-                            stringResource(R.string.kernel_not_enabled)
+                            "${stringResource(R.string.supported)} ($kpmVersion)"
                         }
-                        "${stringResource(R.string.not_supported)} ($statusText)"
-                    } else {
-                        "${stringResource(R.string.supported)} ($kpmVersion)"
-                    }
 
-                    InfoCardItem(
-                        stringResource(R.string.home_kpm_version),
-                        displayVersion,
-                        icon = Icons.Default.Code
-                    )
+                        InfoCardItem(
+                            stringResource(R.string.home_kpm_version),
+                            displayVersion,
+                            icon = Icons.Default.Code
+                        )
+                    }
                 }
             }
 

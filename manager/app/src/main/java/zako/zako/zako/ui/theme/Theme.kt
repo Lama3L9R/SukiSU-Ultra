@@ -44,6 +44,11 @@ import androidx.core.content.edit
 import androidx.core.net.toUri
 import zako.zako.zako.ui.util.BackgroundTransformation
 import zako.zako.zako.ui.util.saveTransformedBackground
+import androidx.activity.ComponentActivity
+import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.activity.SystemBarStyle
 
 /**
  * 主题配置对象，管理应用的主题相关状态
@@ -109,6 +114,10 @@ fun KernelSUTheme(
             }
         }
     }
+
+    SystemBarStyle(
+        darkMode = darkTheme
+    )
 
     // 初始加载配置
     LaunchedEffect(Unit) {
@@ -535,4 +544,36 @@ fun Context.loadDynamicColorState() {
         .getBoolean("use_dynamic_color", true)
 
     ThemeConfig.useDynamicColor = enabled
+}
+
+/**
+ * webui X样式
+ */
+@Composable
+private fun SystemBarStyle(
+    darkMode: Boolean,
+    statusBarScrim: Color = Color.Transparent,
+    navigationBarScrim: Color = Color.Transparent,
+) {
+    val context = LocalContext.current
+    val activity = context as ComponentActivity
+
+    SideEffect {
+        activity.enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.auto(
+                statusBarScrim.toArgb(),
+                statusBarScrim.toArgb(),
+            ) { darkMode },
+            navigationBarStyle = when {
+                darkMode -> SystemBarStyle.dark(
+                    navigationBarScrim.toArgb()
+                )
+
+                else -> SystemBarStyle.light(
+                    navigationBarScrim.toArgb(),
+                    navigationBarScrim.toArgb(),
+                )
+            }
+        )
+    }
 }

@@ -1,16 +1,17 @@
 package zako.zako.zako.ui.webui
 
 import android.app.Activity
-import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import android.text.TextUtils
 import android.view.Window
 import android.webkit.JavascriptInterface
-import android.webkit.WebView
 import android.widget.Toast
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import com.dergoogler.mmrl.webui.interfaces.WXOptions
+import com.dergoogler.mmrl.webui.interfaces.WebUIInterface
+import com.dergoogler.mmrl.webui.model.JavaScriptInterface
 import com.topjohnwu.superuser.CallbackList
 import com.topjohnwu.superuser.ShellUtils
 import com.topjohnwu.superuser.internal.UiThreadHandler
@@ -25,10 +26,15 @@ import java.io.File
 import java.util.concurrent.CompletableFuture
 
 class WebViewInterface(
-    val context: Context,
-    private val webView: WebView,
-    private val modDir: String
-) {
+    wxOptions: WXOptions,
+) : WebUIInterface(wxOptions) {
+    override var name: String = "ksu"
+
+    companion object {
+        fun factory() = JavaScriptInterface(WebViewInterface::class.java)
+    }
+
+    private val modDir get() = "/data/adb/modules/${modId.id}"
 
     @JavascriptInterface
     fun exec(cmd: String): String {
@@ -170,9 +176,9 @@ class WebViewInterface(
         if (context is Activity) {
             Handler(Looper.getMainLooper()).post {
                 if (enable) {
-                    hideSystemUI(context.window)
+                    hideSystemUI(activity.window)
                 } else {
-                    showSystemUI(context.window)
+                    showSystemUI(activity.window)
                 }
             }
         }

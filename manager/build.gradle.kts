@@ -1,7 +1,6 @@
 import com.android.build.api.dsl.ApplicationDefaultConfig
 import com.android.build.api.dsl.CommonExtension
 import com.android.build.gradle.api.AndroidBasePlugin
-import java.io.ByteArrayOutputStream
 
 plugins {
     id("com.android.application") version "8.9.2" apply false
@@ -46,18 +45,6 @@ fun getGitDescribe(): String {
     return providers.exec {
         commandLine("git", "describe", "--tags", "--always", "--abbrev=0")
     }.standardOutput.asText.get().trim()
-}
-
-
-
-fun getVersionCode(): Int {
-    val commitCount = getGitCommitCount()
-    val major = 1
-    return major * 10000 + commitCount + 606
-}
-
-fun getVersionName(): String {
-    return getGitDescribe()
 }
 
 subprojects {

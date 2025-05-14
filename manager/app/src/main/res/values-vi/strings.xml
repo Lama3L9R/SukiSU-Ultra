@@ -222,7 +222,6 @@
     <string name="batch_cancel_authorization">Hủy ủy quyền hàng loạt</string>
     <string name="backup">Sao lưu</string>
     <string name="color_yellow">Vàng</string>
-    <string name="kpm">Mô-đun kpm</string>
     <string name="kpm_title">Mô-đun KPM</string>
     <string name="kpm_empty">Không có mô-đun nào được cài đặt.</string>
     <string name="kpm_version">Phát hành</string>

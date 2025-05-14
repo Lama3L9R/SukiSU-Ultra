@@ -225,7 +225,6 @@
     <string name="batch_authorization">授权</string>
     <string name="batch_cancel_authorization">撤销</string>
     <string name="color_yellow">黄色</string>
-    <string name="kpm">内核模块</string>
     <string name="kpm_title">内核模块</string>
     <string name="kpm_empty">暂无已安装的内核模块</string>
     <string name="kpm_version">版本</string>
@@ -321,4 +320,26 @@
     <string name="background_set_success">背景设置成功</string>
     <string name="background_removed">已移除自定义背景</string>
     <string name="root_require_for_install">需要 root 权限</string>
+    <!-- KPM 显示设置相关 -->
+    <string name="show_kpm_info">显示 KPM 功能</string>
+    <string name="show_kpm_info_summary">在主页和底栏显示 KPM 相关功能和信息 (需要重新打开应用)</string>
+    <!-- Webui X 设置相关 -->
+    <string name="use_webuix">使用 WebUI X</string>
+    <string name="use_webuix_summary">使用支持更多 API 的 WebUI X 而不是 WebUI</string>
+    <string name="use_webuix_eruda">将 Eruda 注入 WebUI X</string>
+    <string name="use_webuix_eruda_summary">在 WebUI X 中注入调试控制台，使调试更容易,需要启用 WebView 调试</string>
+    <!-- DPI设置相关字符串 -->
+    <string name="dpi_settings">DPI 设置</string>
+    <string name="app_dpi_title">应用DPI</string>
+    <string name="app_dpi_summary">仅调整当前应用的屏幕显示密度</string>
+    <string name="dpi_size_small">小</string>
+    <string name="dpi_size_medium">中</string>
+    <string name="dpi_size_large">大</string>
+    <string name="dpi_size_extra_large">超大</string>
+    <string name="dpi_size_custom">自定义</string>
+    <string name="dpi_apply_settings">应用DPI设置</string>
+    <string name="dpi_confirm_title">确认更改DPI</string>
+    <string name="dpi_confirm_message">你确定要将应用DPI从 %1$d 更改为 %2$d 吗？</string>
+    <string name="dpi_confirm_summary">应用需要重启以应用新的DPI设置，不会影响系统状态栏或其他应用</string>
+    <string name="dpi_applied_success">DPI 已设置为 %1$d，重启应用后生效</string>
 </resources>

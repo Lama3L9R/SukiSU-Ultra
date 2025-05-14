@@ -6,6 +6,11 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -57,6 +62,8 @@ import zako.zako.zako.ui.util.LocalSnackbarHost
 import zako.zako.zako.ui.util.getBugreportFile
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import zako.zako.zako.ui.component.KsuIsValid
+import com.dergoogler.mmrl.platform.Platform
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,7 +72,6 @@ import java.time.format.DateTimeFormatter
 fun SettingScreen(navigator: DestinationsNavigator) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val snackBarHost = LocalSnackbarHost.current
-    val ksuIsValid = Natives.isKsuValid(ksuApp.packageName)
 
     Scaffold(
         topBar = {
@@ -80,7 +86,6 @@ fun SettingScreen(navigator: DestinationsNavigator) {
             AboutDialog(it)
         }
         val loadingDialog = rememberLoadingDialog()
-        // endregion
 
         Column(
             modifier = Modifier
@@ -88,12 +93,8 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 .nestedScroll(scrollBehavior.nestedScrollConnection)
                 .verticalScroll(rememberScrollState())
         ) {
-            // region 上下文与协程
             val context = LocalContext.current
             val scope = rememberCoroutineScope()
-            // endregion
-
-            // region 日志导出功能
             val exportBugreportLauncher = rememberLauncherForActivityResult(
                 ActivityResultContracts.CreateDocument("application/gzip")
             ) { uri: Uri? ->
@@ -110,7 +111,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 }
             }
 
-            // 设置分组卡片 - 配置
+            // 配置
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -130,7 +131,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
 
                     // 配置文件模板入口
                     val profileTemplate = stringResource(id = R.string.settings_profile_template)
-                    if (ksuIsValid) {
+                    KsuIsValid {
                         SettingItem(
                             icon = Icons.Filled.Fence,
                             title = profileTemplate,
@@ -146,7 +147,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                         mutableStateOf(Natives.isDefaultUmountModules())
                     }
 
-                    if (ksuIsValid) {
+                    KsuIsValid {
                         SwitchSettingItem(
                             icon = Icons.Filled.FolderDelete,
                             title = stringResource(id = R.string.settings_umount_modules_default),
@@ -161,7 +162,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     }
 
                     // SU 禁用开关（仅在兼容版本显示）
-                    if (ksuIsValid) {
+                    KsuIsValid {
                         if (Natives.version >= Natives.MINIMAL_SUPPORTED_SU_COMPAT) {
                             var isSuDisabled by rememberSaveable {
                                 mutableStateOf(!Natives.isSuEnabled())
@@ -183,7 +184,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 }
             }
 
-            // 设置分组卡片 - 应用设置
+            // 应用设置
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -226,7 +227,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             prefs.getBoolean("enable_web_debugging", false)
                         )
                     }
-                    if (Natives.isKsuValid(ksuApp.packageName)) {
+                    KsuIsValid {
                         SwitchSettingItem(
                             icon = Icons.Filled.DeveloperMode,
                             title = stringResource(id = R.string.enable_web_debugging),
@@ -237,6 +238,52 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                                 enableWebDebugging = it
                             }
                         )
+                    }
+
+                    // Web X 开关
+                    var useWebUIX by rememberSaveable {
+                        mutableStateOf(
+                            prefs.getBoolean("use_webuix", false)
+                        )
+                    }
+                    KsuIsValid {
+                        SwitchItem(
+                            beta = true,
+                            enabled = Platform.isAlive,
+                            icon = Icons.Filled.WebAsset,
+                            title = stringResource(id = R.string.use_webuix),
+                            summary = stringResource(id = R.string.use_webuix_summary),
+                            checked = useWebUIX
+                        ) {
+                            prefs.edit { putBoolean("use_webuix", it) }
+                            useWebUIX = it
+                        }
+                    }
+
+                    // Web X Eruda 开关
+                    var useWebUIXEruda by rememberSaveable {
+                        mutableStateOf(
+                            prefs.getBoolean("use_webuix_eruda", false)
+                        )
+                    }
+                    KsuIsValid {
+                        AnimatedVisibility(
+                            visible = useWebUIX && enableWebDebugging,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically()
+                        ) {
+                            SwitchItem(
+                                beta = true,
+                                enabled = Platform.isAlive && useWebUIX && enableWebDebugging,
+                                icon = Icons.Filled.FormatListNumbered,
+                                title = stringResource(id = R.string.use_webuix_eruda),
+                                summary = stringResource(id = R.string.use_webuix_eruda_summary),
+                                checked = useWebUIXEruda
+                            ) {
+                                prefs.edit { putBoolean("use_webuix_eruda", it) }
+                                useWebUIXEruda = it
+                            }
+                        }
                     }
 
                     // 更多设置
@@ -251,7 +298,7 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 }
             }
 
-            // 设置分组卡片 - 工具
+            // 工具
             Card(
                 modifier = Modifier
                     .fillMaxWidth()

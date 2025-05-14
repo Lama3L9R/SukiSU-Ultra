@@ -68,10 +68,11 @@ import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.zip.ZipInputStream
 import androidx.core.content.edit
-import androidx.core.net.toUri
-import zako.zako.zako.ui.theme.ThemeConfig
 import zako.zako.zako.R
 import zako.zako.zako.ui.theme.CardConfig.cardElevation
+import zako.zako.zako.ui.webui.WebUIXActivity
+import com.dergoogler.mmrl.platform.Platform
+import androidx.core.net.toUri
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -197,7 +198,7 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
     val backupLauncher = ModuleModify.rememberModuleBackupLauncher(context, snackBarHost)
     val restoreLauncher = ModuleModify.rememberModuleRestoreLauncher(context, snackBarHost)
 
-    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    val prefs = context.getSharedPreferences("settings", MODE_PRIVATE)
 
     LaunchedEffect(Unit) {
         if (viewModel.moduleList.isEmpty() || viewModel.isNeedRefresh) {
@@ -323,11 +324,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
         floatingActionButton = {
             if (!hideInstallButton) {
                 val moduleInstall = stringResource(id = R.string.module_install)
-                val cardColor = if (!ThemeConfig.useDynamicColor) {
-                    ThemeConfig.currentTheme.ButtonContrast
-                } else {
-                    MaterialTheme.colorScheme.primaryContainer
-                }
                 ExtendedFloatingActionButton(
                     onClick = {
                         selectZipLauncher.launch(
@@ -349,7 +345,6 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     },
-                    containerColor = cardColor,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     expanded = true,
                 )
@@ -401,10 +396,17 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     onClickModule = { id, name, hasWebUi ->
                         if (hasWebUi) {
                             webUILauncher.launch(
-                                Intent(context, WebUIActivity::class.java)
-                                    .setData("kernelsu://webui/$id".toUri())
-                                    .putExtra("id", id)
-                                    .putExtra("name", name)
+                                if (prefs.getBoolean("use_webuix", false) && Platform.isAlive) {
+                                    Intent(context, WebUIXActivity::class.java)
+                                        .setData("kernelsu://webuix/$id".toUri())
+                                        .putExtra("id", id)
+                                        .putExtra("name", name)
+                                } else {
+                                    Intent(context, WebUIActivity::class.java)
+                                        .setData("kernelsu://webui/$id".toUri())
+                                        .putExtra("id", id)
+                                        .putExtra("name", name)
+                                }
                             )
                         }
                     },
@@ -816,27 +818,21 @@ fun ModuleItem(
                             viewModel.markNeedRefresh()
                         },
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
-                        colors = if (!ThemeConfig.useDynamicColor) {
-                            ButtonDefaults.filledTonalButtonColors(
-                                containerColor = ThemeConfig.currentTheme.ButtonContrast
-                            )
-                        } else {
-                            ButtonDefaults.filledTonalButtonColors()
-                        }
+                        colors = ButtonDefaults.filledTonalButtonColors()
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
                             imageVector = Icons.Outlined.PlayArrow,
                             contentDescription = null
                         )
-                        if (!module.hasWebUi && updateUrl.isEmpty()) {
-                            Text(
-                                modifier = Modifier.padding(start = 7.dp),
-                                text = stringResource(R.string.action),
-                                fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
-                                fontSize = MaterialTheme.typography.labelMedium.fontSize
-                            )
-                        }
+                        //if (!module.hasWebUi && updateUrl.isEmpty()) {
+                            //Text(
+                            //    modifier = Modifier.padding(start = 7.dp),
+                            //    text = stringResource(R.string.action),
+                            //    fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
+                            //    fontSize = MaterialTheme.typography.labelMedium.fontSize
+                            //)
+                        //}
                     }
                 }
 
@@ -847,27 +843,22 @@ fun ModuleItem(
                         onClick = { onClick(module) },
                         interactionSource = interactionSource,
                         contentPadding = ButtonDefaults.TextButtonContentPadding,
-                        colors = if (!ThemeConfig.useDynamicColor) {
-                            ButtonDefaults.filledTonalButtonColors(
-                                containerColor = ThemeConfig.currentTheme.ButtonContrast
-                            )
-                        } else {
-                            ButtonDefaults.filledTonalButtonColors()
-                        }
+                        colors = ButtonDefaults.filledTonalButtonColors()
+
                     ) {
                         Icon(
                             modifier = Modifier.size(20.dp),
                             imageVector = Icons.AutoMirrored.Outlined.Wysiwyg,
                             contentDescription = null
                         )
-                        if (!module.hasActionScript && updateUrl.isEmpty()) {
-                            Text(
-                                modifier = Modifier.padding(start = 7.dp),
-                                fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
-                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                text = stringResource(R.string.open)
-                            )
-                        }
+                        //if (!module.hasActionScript && updateUrl.isEmpty()) {
+                            //Text(
+                            //    modifier = Modifier.padding(start = 7.dp),
+                            //    fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
+                            //    fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                            //    text = stringResource(R.string.open)
+                            //)
+                        //}
                     }
                 }
 
@@ -886,14 +877,14 @@ fun ModuleItem(
                             imageVector = Icons.Outlined.Download,
                             contentDescription = null
                         )
-                        if (!module.hasActionScript || !module.hasWebUi) {
-                            Text(
-                                modifier = Modifier.padding(start = 7.dp),
-                                fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
-                                fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                                text = stringResource(R.string.module_update)
-                            )
-                        }
+                        //if (!module.hasActionScript || !module.hasWebUi) {
+                            //Text(
+                            //    modifier = Modifier.padding(start = 7.dp),
+                            //    fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
+                            //    fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                            //    text = stringResource(R.string.module_update)
+                            //)
+                        //}
                     }
                 }
 
@@ -901,15 +892,8 @@ fun ModuleItem(
                     modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp),
                     onClick = { onUninstallClicked(module) },
                     contentPadding = ButtonDefaults.TextButtonContentPadding,
-                    colors = if (!ThemeConfig.useDynamicColor) {
-                        ButtonDefaults.filledTonalButtonColors(
-                            containerColor = if (!module.remove) MaterialTheme.colorScheme.errorContainer else ThemeConfig.currentTheme.ButtonContrast
-                        )
-                    } else {
-                        ButtonDefaults.filledTonalButtonColors(
-                            containerColor = if (!module.remove) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.secondaryContainer
-                        )
-                    }
+                    colors = ButtonDefaults.filledTonalButtonColors(
+                            containerColor = if (!module.remove) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer)
                 ) {
                     if (!module.remove) {
                         Icon(
@@ -924,15 +908,15 @@ fun ModuleItem(
                             contentDescription = null
                         )
                     }
-                    if (!module.hasActionScript && !module.hasWebUi && updateUrl.isEmpty()) {
-                        Text(
-                            modifier = Modifier.padding(start = 7.dp),
-                            fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
-                            fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                            text = stringResource(if (!module.remove) R.string.uninstall else R.string.restore),
-                            color = if (!module.remove) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
+                    //if (!module.hasActionScript && !module.hasWebUi && updateUrl.isEmpty()) {
+                        //Text(
+                        //    modifier = Modifier.padding(start = 7.dp),
+                        //    fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
+                        //    fontSize = MaterialTheme.typography.labelMedium.fontSize,
+                        //    text = stringResource(if (!module.remove) R.string.uninstall else R.string.restore),
+                        //    color = if (!module.remove) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
+                        //)
+                    //}
                 }
             }
         }

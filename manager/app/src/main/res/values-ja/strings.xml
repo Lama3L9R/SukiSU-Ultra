@@ -226,7 +226,6 @@
     <string name="batch_cancel_authorization">認証を一括でキャンセル</string>
     <string name="backup">バックアップ</string>
     <string name="color_yellow">イエロー</string>
-    <string name="kpm">カーネルモジュール</string>
     <string name="kpm_title">カーネルモジュール</string>
     <string name="kpm_empty">カーネルモジュールは現在インストールされていません</string>
     <string name="kpm_version">バージョン</string>
