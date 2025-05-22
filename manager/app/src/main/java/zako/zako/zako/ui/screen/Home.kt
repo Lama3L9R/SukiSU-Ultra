@@ -251,7 +251,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
                                 modifier = Modifier.padding(end = 12.dp)
                             )
                             Text(
-                                text = stringResource(R.string.using_mksu_manager),
+                                text = "雑魚~ 雑魚~ 雑魚~",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
@@ -307,7 +307,7 @@ fun UpdateCard() {
     val updateText = stringResource(id = R.string.module_update)
 
     AnimatedVisibility(
-        visible = newVersionCode > currentVersionCode,
+        visible = false, // ZakoSU never out-of-date
         enter = fadeIn() + expandVertically(
             animationSpec = spring(
                 dampingRatio = Spring.DampingRatioMediumBouncy,
