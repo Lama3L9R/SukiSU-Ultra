@@ -20,8 +20,6 @@ import java.text.Collator
 import java.util.*
 import com.dergoogler.mmrl.platform.Platform
 import com.dergoogler.mmrl.platform.TIMEOUT_MILLIS
-import zako.zako.zako.ui.webui.packageManager
-import zako.zako.zako.ui.webui.userManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withTimeoutOrNull
 
@@ -139,6 +137,43 @@ class SuperUserViewModel : ViewModel() {
         fetchAppList() // 刷新列表以显示最新状态
     }
 
+    // 批量更新权限和umount模块设置
+    suspend fun updateBatchPermissions(allowSu: Boolean, umountModules: Boolean? = null) {
+        selectedApps.forEach { packageName ->
+            val app = apps.find { it.packageName == packageName }
+            app?.let {
+                val profile = Natives.getAppProfile(packageName, it.uid)
+                val updatedProfile = profile.copy(
+                    allowSu = allowSu,
+                    umountModules = umountModules ?: profile.umountModules,
+                    nonRootUseDefault = false
+                )
+                if (Natives.setAppProfile(updatedProfile)) {
+                    apps = apps.map { app ->
+                        if (app.packageName == packageName) {
+                            app.copy(profile = updatedProfile)
+                        } else {
+                            app
+                        }
+                    }
+                }
+            }
+        }
+        clearSelection()
+        showBatchActions = false // 批量操作完成后退出批量模式
+        fetchAppList() // 刷新列表以显示最新状态
+    }
+
+    // 仅更新本地应用配置，避免重新获取整个列表导致滚动位置重置
+    fun updateAppProfileLocally(packageName: String, updatedProfile: Natives.Profile) {
+        apps = apps.map { app ->
+            if (app.packageName == packageName) {
+                app.copy(profile = updatedProfile)
+            } else {
+                app
+            }
+        }
+    }
 
     suspend fun fetchAppList() {
         isRefreshing = true

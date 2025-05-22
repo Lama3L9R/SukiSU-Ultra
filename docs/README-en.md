@@ -1,6 +1,6 @@
 # SukiSU - Zako Edition!
 
-**English** | [简体中文](README.md) | [日本語](README-ja.md)
+**English** | [简体中文](README.md) | [日本語](README-ja.md) | [Türkçe](README-tr.md)
 
 Android device root solution based on [KernelSU](https://github.com/tiann/KernelSU)
 
@@ -15,34 +15,57 @@ Android device root solution based on [KernelSU](https://github.com/tiann/Kernel
 >
 > However, we will be a separately maintained branch of KSU in the future
 
-- Fully adapted for non-GKI devices (susfs-dev and unsusfs-patched dev branches only)
-
 ## How to add
 
-Use the susfs-stable or susfs-dev branch (integrated susfs with support for non-GKI devices)
+Using main branching (non-GKI device builds are not supported)
 ```
-curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 ```
 
-Use the main branch
+Using branches that support non-GKI devices
 ```
-curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s main
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
 ```
 
 ## How to use integrated susfs
 
 1. Use the susfs-dev branch directly without any patching
 
-## KPM support
+```
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
+```
 
-- We have removed duplicate KSU functions based on KernelPatch and retained KPM support.
+## KPM Support
+
+- Based on KernelPatch, we have removed duplicates of KSU and kept only KPM support.
 - We will introduce more APatch-compatible functions to ensure the integrity of KPM functionality.
 
-Open source address: https://github.com/ShirkNeko/SukiSU_KernelPatch_patch
+We will introduce more APatch-compatible functions to ensure the completeness of KPM functionality.
 
-KPM template address: https://github.com/udochina/KPM-Build-Anywhere
+KPM templates: https://github.com/udochina/KPM-Build-Anywhere
+
+> [!Note]
+> 1. `CONFIG_KPM=y` needs to be added.
+> 2. Non-GKI devices need to add `CONFIG_KALLSYMS=y` and `CONFIG_KALLSYMS_ALL=y` as well.
+> 3. Some kernel source code below `4.19` also needs to be backport from `4.19` to the header file `set_memory.h`.
+
+## How to do a system update to retain ROOT
+- After OTA, don't reboot first, go to the manager flashing/patching kernel interface, find `GKI/non_GKI install` and select the Anykernel3 kernel zip file that needs to be flashed, select the slot that is opposite to the current running slot of the system for flashing, and then reboot to retain the GKI mode update （This method is not supported for all non-GKI devices, so please try it yourself. It is the safest way to use TWRP for non-GKI devices.）
+- Or use LKM mode to install to the unused slot (after OTA).
+
+## Compatibility Status
+- KernelSU (versions prior to v1.0.0) officially supports Android GKI 2.0 devices (kernel 5.10+)
+
+- Older kernels (4.4+) are also compatible, but the kernel must be built manually
+
+- KernelSU can support 3.x kernels (3.4-3.18) through additional reverse ports
+
+- Currently supports `arm64-v8a`, `armeabi-v7a (bare)` and some `X86_64`
+
 
 ## More links
+
+**If you need to submit a translation for the manager go to** https://crowdin.com/project/SukiSU-Ultra
 
 Projects compiled based on Sukisu and susfs
 - [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) 
@@ -64,11 +87,14 @@ Projects compiled based on Sukisu and susfs
 
 ## Usage
 
-### GKI
+### Universal GKI
 
-Please follow this guide.
+Please **all** refer to https://kernelsu.org/zh_CN/guide/installation.html
 
-https://kernelsu.org/guide/installation.html
+> [!Note]
+> 1. for devices with GKI 2.0 such as Xiaomi, Redmi, Samsung, etc. (excludes kernel-modified manufacturers such as Meizu, OnePlus, Zenith, and oppo)
+> 2. Find the GKI build in [more links](#%E6%9B%B4%E5%A4%9A%E9%93%BE%E6%8E%A5). Find the device kernel version. Then download it and use TWRP or kernel flashing tool to flash the zip file with AnyKernel3 suffix.
+> 3. The .zip archive without suffix is uncompressed, the gz suffix is the compression used by Tenguet models.
 
 
 ### OnePlus

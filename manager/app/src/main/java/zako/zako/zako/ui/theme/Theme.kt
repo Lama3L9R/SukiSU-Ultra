@@ -110,6 +110,9 @@ fun KernelSUTheme(
                 if (!isCustomAlphaSet) {
                     cardAlpha = if (systemIsDark) 0.50f else 1f
                 }
+                if (!isCustomDimSet) {
+                    cardDim = if (systemIsDark) 0.5f else 0f
+                }
                 save(context)
             }
         }
@@ -148,6 +151,8 @@ fun KernelSUTheme(
     val isDarkModeWithCustomBackground = darkTheme && ThemeConfig.customBackgroundUri != null
     if (darkTheme && !dynamicColor) {
         CardConfig.setDarkModeDefaults()
+    } else if (!darkTheme && !dynamicColor) {
+        CardConfig.setLightModeDefaults()
     }
     CardConfig.updateShadowEnabled(!isDarkModeWithCustomBackground)
 
@@ -199,6 +204,9 @@ fun KernelSUTheme(
         }
     }
 
+    // 计算适用的暗化值
+    val dimFactor = CardConfig.cardDim
+
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography
@@ -234,13 +242,13 @@ fun KernelSUTheme(
                         )
                     }
 
-                    // 亮度调节层
+                    // 亮度调节层 (根据cardDim调整)
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .background(
-                                if (darkTheme) Color.Black.copy(alpha = 0.6f)
-                                else Color.White.copy(alpha = 0.1f)
+                                if (darkTheme) Color.Black.copy(alpha = 0.6f + dimFactor * 0.3f)
+                                else Color.White.copy(alpha = 0.1f + dimFactor * 0.2f)
                             )
                     )
 
@@ -252,8 +260,8 @@ fun KernelSUTheme(
                                 Brush.radialGradient(
                                     colors = listOf(
                                         Color.Transparent,
-                                        if (darkTheme) Color.Black.copy(alpha = 0.5f)
-                                        else Color.Black.copy(alpha = 0.2f)
+                                        if (darkTheme) Color.Black.copy(alpha = 0.5f + dimFactor * 0.2f)
+                                        else Color.Black.copy(alpha = 0.2f + dimFactor * 0.1f)
                                     ),
                                     radius = 1200f
                                 )
@@ -546,9 +554,6 @@ fun Context.loadDynamicColorState() {
     ThemeConfig.useDynamicColor = enabled
 }
 
-/**
- * webui X样式
- */
 @Composable
 private fun SystemBarStyle(
     darkMode: Boolean,

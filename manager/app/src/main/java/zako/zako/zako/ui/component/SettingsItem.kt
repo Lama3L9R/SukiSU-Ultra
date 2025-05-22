@@ -5,6 +5,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -62,7 +63,8 @@ fun SwitchItem(
                 Icon(
                     modifier = Modifier.then(stateAlpha),
                     imageVector = icon,
-                    contentDescription = title
+                    contentDescription = title,
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
         },

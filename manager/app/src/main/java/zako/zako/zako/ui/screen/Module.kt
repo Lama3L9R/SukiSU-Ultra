@@ -4,6 +4,7 @@ import android.app.Activity.*
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -67,6 +68,7 @@ import zako.zako.zako.ui.util.ModuleModify
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.util.zip.ZipInputStream
+import java.util.concurrent.TimeUnit
 import androidx.core.content.edit
 import zako.zako.zako.R
 import zako.zako.zako.ui.theme.CardConfig.cardElevation
@@ -96,38 +98,21 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
         scope.launch {
             val clipData = data.clipData
             if (clipData != null) {
-                // 处理多选结果
-                val selectedModules = mutableSetOf<Uri>()
+                val selectedModules = mutableListOf<Uri>()
                 val selectedModuleNames = mutableMapOf<Uri, String>()
 
-                suspend fun processUri(uri: Uri) {
-                    val moduleName = withContext(Dispatchers.IO) {
-                        try {
-                            val zipInputStream = ZipInputStream(context.contentResolver.openInputStream(uri))
-                            var entry = zipInputStream.nextEntry
-                            var name = context.getString(R.string.unknown_module)
-
-                            while (entry != null) {
-                                if (entry.name == "module.prop") {
-                                    val reader = BufferedReader(InputStreamReader(zipInputStream))
-                                    var line: String?
-                                    while (reader.readLine().also { line = it } != null) {
-                                        if (line?.startsWith("name=") == true) {
-                                            name = line.substringAfter("=")
-                                            break
-                                        }
-                                    }
-                                    break
-                                }
-                                entry = zipInputStream.nextEntry
-                            }
-                            name
-                        } catch (e: Exception) {
-                            context.getString(R.string.unknown_module)
+                fun processUri(uri: Uri) {
+                    try {
+                        if (!ModuleUtils.isUriAccessible(context, uri)) {
+                            return
                         }
+                        ModuleUtils.takePersistableUriPermission(context, uri)
+                        val moduleName = ModuleUtils.extractModuleName(context, uri)
+                        selectedModules.add(uri)
+                        selectedModuleNames[uri] = moduleName
+                    } catch (e: Exception) {
+                        Log.e("ModuleScreen", "Error while processing URI: $uri, Error: ${e.message}")
                     }
-                    selectedModules.add(uri)
-                    selectedModuleNames[uri] = moduleName
                 }
 
                 for (i in 0 until clipData.itemCount) {
@@ -135,7 +120,11 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                     processUri(uri)
                 }
 
-                // 显示确认对话框
+                if (selectedModules.isEmpty()) {
+                    snackBarHost.showSnackbar("Unable to access selected module files")
+                    return@launch
+                }
+
                 val modulesList = selectedModuleNames.values.joinToString("\n• ", "• ")
                 val confirmResult = confirmDialog.awaitConfirm(
                     title = context.getString(R.string.module_install),
@@ -145,51 +134,42 @@ fun ModuleScreen(navigator: DestinationsNavigator) {
                 )
 
                 if (confirmResult == ConfirmResult.Confirmed) {
-                    // 批量安装模块
-                    selectedModules.forEach { uri ->
-                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModule(uri)))
+                    try {
+                        // 批量安装模块
+                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModules(selectedModules)))
+                        viewModel.markNeedRefresh()
+                    } catch (e: Exception) {
+                        Log.e("ModuleScreen", "Error navigating to FlashScreen: ${e.message}")
+                        snackBarHost.showSnackbar("Error while installing module: ${e.message}")
                     }
-                    viewModel.markNeedRefresh()
                 }
             } else {
-                // 单个文件安装逻辑
                 val uri = data.data ?: return@launch
-                val moduleName = withContext(Dispatchers.IO) {
-                    try {
-                        val zipInputStream = ZipInputStream(context.contentResolver.openInputStream(uri))
-                        var entry = zipInputStream.nextEntry
-                        var name = context.getString(R.string.unknown_module)
-
-                        while (entry != null) {
-                            if (entry.name == "module.prop") {
-                                val reader = BufferedReader(InputStreamReader(zipInputStream))
-                                var line: String?
-                                while (reader.readLine().also { line = it } != null) {
-                                    if (line?.startsWith("name=") == true) {
-                                        name = line.substringAfter("=")
-                                        break
-                                    }
-                                }
-                                break
-                            }
-                            entry = zipInputStream.nextEntry
-                        }
-                        name
-                    } catch (e: Exception) {
-                        context.getString(R.string.unknown_module)
+                    // 单个安装模块
+                try {
+                    if (!ModuleUtils.isUriAccessible(context, uri)) {
+                        snackBarHost.showSnackbar("Unable to access selected module files")
+                        return@launch
                     }
-                }
 
-                val confirmResult = confirmDialog.awaitConfirm(
-                    title = context.getString(R.string.module_install),
-                    content = context.getString(R.string.module_install_confirm, moduleName),
-                    confirm = context.getString(R.string.install),
-                    dismiss = context.getString(R.string.cancel)
-                )
+                    ModuleUtils.takePersistableUriPermission(context, uri)
 
-                if (confirmResult == ConfirmResult.Confirmed) {
-                    navigator.navigate(FlashScreenDestination(FlashIt.FlashModule(uri)))
-                    viewModel.markNeedRefresh()
+                    val moduleName = ModuleUtils.extractModuleName(context, uri)
+
+                    val confirmResult = confirmDialog.awaitConfirm(
+                        title = context.getString(R.string.module_install),
+                        content = context.getString(R.string.module_install_confirm, moduleName),
+                        confirm = context.getString(R.string.install),
+                        dismiss = context.getString(R.string.cancel)
+                    )
+
+                    if (confirmResult == ConfirmResult.Confirmed) {
+                        navigator.navigate(FlashScreenDestination(FlashIt.FlashModule(uri)))
+                        viewModel.markNeedRefresh()
+                    }
+                } catch (e: Exception) {
+                    Log.e("ModuleScreen", "Error processing a single URI: $uri, Error: ${e.message}")
+                    snackBarHost.showSnackbar("Error processing module file: ${e.message}")
                 }
             }
         }
@@ -445,6 +425,7 @@ private fun ModuleList(
     val downloadingText = stringResource(R.string.module_downloading)
     val startDownloadingText = stringResource(R.string.module_start_downloading)
     val fetchChangeLogFailed = stringResource(R.string.module_changelog_failed)
+    val downloadErrorText = stringResource(R.string.module_download_error)
 
     val loadingDialog = rememberLoadingDialog()
     val confirmDialog = rememberConfirmDialog()
@@ -455,12 +436,20 @@ private fun ModuleList(
         downloadUrl: String,
         fileName: String
     ) {
+        val client = OkHttpClient.Builder()
+            .connectTimeout(15, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .build()
+
+        val request = okhttp3.Request.Builder()
+            .url(changelogUrl)
+            .header("User-Agent", "SukiSU-Ultra/2.0")
+            .build()
+
         val changelogResult = loadingDialog.withLoading {
             withContext(Dispatchers.IO) {
                 runCatching {
-                    OkHttpClient().newCall(
-                        okhttp3.Request.Builder().url(changelogUrl).build()
-                    ).execute().body!!.string()
+                    client.newCall(request).execute().body!!.string()
                 }
             }
         }
@@ -508,6 +497,11 @@ private fun ModuleList(
                 onDownloading = {
                     launch(Dispatchers.Main) {
                         Toast.makeText(context, downloading, Toast.LENGTH_SHORT).show()
+                    }
+                },
+                onError = { errorMsg ->
+                    launch(Dispatchers.Main) {
+                        Toast.makeText(context, "$downloadErrorText: $errorMsg", Toast.LENGTH_LONG).show()
                     }
                 }
             )
@@ -825,14 +819,6 @@ fun ModuleItem(
                             imageVector = Icons.Outlined.PlayArrow,
                             contentDescription = null
                         )
-                        //if (!module.hasWebUi && updateUrl.isEmpty()) {
-                            //Text(
-                            //    modifier = Modifier.padding(start = 7.dp),
-                            //    text = stringResource(R.string.action),
-                            //    fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
-                            //    fontSize = MaterialTheme.typography.labelMedium.fontSize
-                            //)
-                        //}
                     }
                 }
 
@@ -851,14 +837,6 @@ fun ModuleItem(
                             imageVector = Icons.AutoMirrored.Outlined.Wysiwyg,
                             contentDescription = null
                         )
-                        //if (!module.hasActionScript && updateUrl.isEmpty()) {
-                            //Text(
-                            //    modifier = Modifier.padding(start = 7.dp),
-                            //    fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
-                            //    fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                            //    text = stringResource(R.string.open)
-                            //)
-                        //}
                     }
                 }
 
@@ -877,14 +855,6 @@ fun ModuleItem(
                             imageVector = Icons.Outlined.Download,
                             contentDescription = null
                         )
-                        //if (!module.hasActionScript || !module.hasWebUi) {
-                            //Text(
-                            //    modifier = Modifier.padding(start = 7.dp),
-                            //    fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
-                            //    fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                            //    text = stringResource(R.string.module_update)
-                            //)
-                        //}
                     }
                 }
 
@@ -893,7 +863,7 @@ fun ModuleItem(
                     onClick = { onUninstallClicked(module) },
                     contentPadding = ButtonDefaults.TextButtonContentPadding,
                     colors = ButtonDefaults.filledTonalButtonColors(
-                            containerColor = if (!module.remove) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer)
+                        containerColor = if (!module.remove) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.errorContainer)
                 ) {
                     if (!module.remove) {
                         Icon(
@@ -908,15 +878,6 @@ fun ModuleItem(
                             contentDescription = null
                         )
                     }
-                    //if (!module.hasActionScript && !module.hasWebUi && updateUrl.isEmpty()) {
-                        //Text(
-                        //    modifier = Modifier.padding(start = 7.dp),
-                        //    fontFamily = MaterialTheme.typography.labelMedium.fontFamily,
-                        //    fontSize = MaterialTheme.typography.labelMedium.fontSize,
-                        //    text = stringResource(if (!module.remove) R.string.uninstall else R.string.restore),
-                        //    color = if (!module.remove) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onSecondaryContainer
-                        //)
-                    //}
                 }
             }
         }

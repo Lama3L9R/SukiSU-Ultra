@@ -1,13 +1,17 @@
 package zako.zako.zako.ui.screen
 
 import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -42,7 +46,6 @@ import zako.zako.zako.Natives
 import zako.zako.zako.ui.component.SearchAppBar
 import zako.zako.zako.ui.util.ModuleModify
 import zako.zako.zako.ui.viewmodel.SuperUserViewModel
-import zako.zako.zako.ui.theme.CardConfig.cardElevation
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
@@ -68,7 +71,8 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
 
     LaunchedEffect(viewModel.search) {
         if (viewModel.search.isEmpty()) {
-            listState.scrollToItem(0)
+            // 取消自动滚动到顶部的行为
+            // listState.scrollToItem(0)
         }
     }
 
@@ -165,77 +169,309 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
         },
         snackbarHost = { SnackbarHost(snackBarHostState) },
         contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
-        bottomBar = {
-            AnimatedVisibility(
-                visible = viewModel.showBatchActions && viewModel.selectedApps.isNotEmpty(),
-                enter = slideInVertically(initialOffsetY = { it }),
-                exit = slideOutVertically(targetOffsetY = { it })
+        floatingActionButton = {
+            // 侧边悬浮按钮集合
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.End
             ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    tonalElevation = cardElevation,
-                    shadowElevation = cardElevation
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
+                // 批量操作相关按钮
+                // 只有在批量模式且有选中应用时才显示批量操作按钮
+                if (viewModel.showBatchActions && viewModel.selectedApps.isNotEmpty()) {
+                    // 取消按钮
+                    val cancelInteractionSource = remember { MutableInteractionSource() }
+                    val isCancelPressed by cancelInteractionSource.collectIsPressedAsState()
+
+                    FloatingActionButton(
+                        onClick = {
+                            viewModel.selectedApps = emptySet()
+                            viewModel.showBatchActions = false
+                        },
+                        modifier = Modifier.size(if (isCancelPressed) 56.dp else 40.dp),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        shape = CircleShape,
+                        interactionSource = cancelInteractionSource,
+                        elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = {
-                                viewModel.selectedApps = emptySet()
-                                viewModel.showBatchActions = false
-                            },
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = MaterialTheme.colorScheme.primary
-                            )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Close,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                contentDescription = stringResource(android.R.string.cancel),
+                                modifier = Modifier.size(24.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(stringResource(android.R.string.cancel))
+                            AnimatedVisibility(
+                                visible = isCancelPressed,
+                                enter = expandHorizontally() + fadeIn(),
+                                exit = shrinkHorizontally() + fadeOut()
+                            ) {
+                                Text(
+                                    stringResource(android.R.string.cancel),
+                                    modifier = Modifier.padding(end = 4.dp),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
                         }
+                    }
 
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    viewModel.updateBatchPermissions(true)
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.primary
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Check,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(stringResource(R.string.batch_authorization))
-                        }
+                    // 取消授权按钮
+                    val unauthorizeInteractionSource = remember { MutableInteractionSource() }
+                    val isUnauthorizePressed by unauthorizeInteractionSource.collectIsPressedAsState()
 
-                        Button(
-                            onClick = {
-                                scope.launch {
-                                    viewModel.updateBatchPermissions(false)
-                                }
-                            },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = MaterialTheme.colorScheme.error
-                            )
+                    FloatingActionButton(
+                        onClick = {
+                            scope.launch {
+                                viewModel.updateBatchPermissions(false)
+                            }
+                        },
+                        modifier = Modifier.size(if (isUnauthorizePressed) 56.dp else 40.dp),
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                        shape = CircleShape,
+                        interactionSource = unauthorizeInteractionSource,
+                        elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Block,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
+                                contentDescription = stringResource(R.string.batch_cancel_authorization),
+                                modifier = Modifier.size(24.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(stringResource(R.string.batch_cancel_authorization))
+                            AnimatedVisibility(
+                                visible = isUnauthorizePressed,
+                                enter = expandHorizontally() + fadeIn(),
+                                exit = shrinkHorizontally() + fadeOut()
+                            ) {
+                                Text(
+                                    stringResource(R.string.batch_cancel_authorization),
+                                    modifier = Modifier.padding(end = 4.dp),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
+                    }
+
+                    // 授权按钮
+                    val authorizeInteractionSource = remember { MutableInteractionSource() }
+                    val isAuthorizePressed by authorizeInteractionSource.collectIsPressedAsState()
+
+                    FloatingActionButton(
+                        onClick = {
+                            scope.launch {
+                                viewModel.updateBatchPermissions(true)
+                            }
+                        },
+                        modifier = Modifier.size(if (isAuthorizePressed) 56.dp else 40.dp),
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        shape = CircleShape,
+                        interactionSource = authorizeInteractionSource,
+                        elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Check,
+                                contentDescription = stringResource(R.string.batch_authorization),
+                                modifier = Modifier.size(24.dp)
+                            )
+                            AnimatedVisibility(
+                                visible = isAuthorizePressed,
+                                enter = expandHorizontally() + fadeIn(),
+                                exit = shrinkHorizontally() + fadeOut()
+                            ) {
+                                Text(
+                                    stringResource(R.string.batch_authorization),
+                                    modifier = Modifier.padding(end = 4.dp),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            }
+                        }
+                    }
+
+                    // 添加分隔
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+
+                if (viewModel.showBatchActions && viewModel.selectedApps.isNotEmpty()) {
+
+                // 在批量操作按钮组中添加卸载模块的按钮
+                // 卸载模块启用按钮
+                val umountEnableInteractionSource = remember { MutableInteractionSource() }
+                val isUmountEnablePressed by umountEnableInteractionSource.collectIsPressedAsState()
+
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            viewModel.updateBatchPermissions(
+                                allowSu = false, // 不改变ROOT权限状态
+                                umountModules = true // 启用卸载模块
+                            )
+                        }
+                    },
+                    modifier = Modifier.size(if (isUmountEnablePressed) 56.dp else 40.dp),
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    shape = CircleShape,
+                    interactionSource = umountEnableInteractionSource,
+                    elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.FolderOff,
+                            contentDescription = stringResource(R.string.profile_umount_modules),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        AnimatedVisibility(
+                            visible = isUmountEnablePressed,
+                            enter = expandHorizontally() + fadeIn(),
+                            exit = shrinkHorizontally() + fadeOut()
+                        ) {
+                            Text(
+                                stringResource(R.string.profile_umount_modules),
+                                modifier = Modifier.padding(end = 4.dp),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    }
+                }
+
+                // 卸载模块禁用按钮
+                val umountDisableInteractionSource = remember { MutableInteractionSource() }
+                val isUmountDisablePressed by umountDisableInteractionSource.collectIsPressedAsState()
+
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            viewModel.updateBatchPermissions(
+                                allowSu = false, // 不改变ROOT权限状态
+                                umountModules = false // 禁用卸载模块
+                            )
+                        }
+                    },
+                    modifier = Modifier.size(if (isUmountDisablePressed) 56.dp else 40.dp),
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                    shape = CircleShape,
+                    interactionSource = umountDisableInteractionSource,
+                    elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Folder,
+                            contentDescription = stringResource(R.string.profile_umount_modules_disable),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        AnimatedVisibility(
+                            visible = isUmountDisablePressed,
+                            enter = expandHorizontally() + fadeIn(),
+                            exit = shrinkHorizontally() + fadeOut()
+                        ) {
+                            Text(
+                                stringResource(R.string.profile_umount_modules_disable),
+                                modifier = Modifier.padding(end = 4.dp),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    }
+                    // 添加分隔
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                    }
+
+                // 向上导航按钮
+                val topBtnInteractionSource = remember { MutableInteractionSource() }
+                val isTopBtnPressed by topBtnInteractionSource.collectIsPressedAsState()
+
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            listState.animateScrollToItem(0)
+                        }
+                    },
+                    modifier = Modifier.size(if (isTopBtnPressed) 56.dp else 40.dp),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    shape = CircleShape,
+                    interactionSource = topBtnInteractionSource,
+                    elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowUp,
+                            contentDescription = stringResource(R.string.scroll_to_top_description),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        AnimatedVisibility(
+                            visible = isTopBtnPressed,
+                            enter = expandHorizontally() + fadeIn(),
+                            exit = shrinkHorizontally() + fadeOut()
+                        ) {
+                            Text(
+                                stringResource(R.string.scroll_to_top),
+                                modifier = Modifier.padding(end = 4.dp),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    }
+                }
+
+                // 向下导航按钮
+                val bottomBtnInteractionSource = remember { MutableInteractionSource() }
+                val isBottomBtnPressed by bottomBtnInteractionSource.collectIsPressedAsState()
+
+                FloatingActionButton(
+                    onClick = {
+                        scope.launch {
+                            val lastIndex = viewModel.appList.size - 1
+                            if (lastIndex >= 0) {
+                                listState.animateScrollToItem(lastIndex)
+                            }
+                        }
+                    },
+                    modifier = Modifier.size(if (isBottomBtnPressed) 56.dp else 40.dp),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f),
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    shape = CircleShape,
+                    interactionSource = bottomBtnInteractionSource,
+                    elevation = FloatingActionButtonDefaults.elevation(4.dp, 6.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowDown,
+                            contentDescription = stringResource(R.string.scroll_to_bottom_description),
+                            modifier = Modifier.size(24.dp)
+                        )
+                        AnimatedVisibility(
+                            visible = isBottomBtnPressed,
+                            enter = expandHorizontally() + fadeIn(),
+                            exit = shrinkHorizontally() + fadeOut()
+                        ) {
+                            Text(
+                                stringResource(R.string.scroll_to_bottom),
+                                modifier = Modifier.padding(end = 4.dp),
+                                style = MaterialTheme.typography.labelMedium
+                            )
                         }
                     }
                 }
@@ -256,7 +492,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                     .nestedScroll(scrollBehavior.nestedScrollConnection),
                 contentPadding = PaddingValues(
                     top = 8.dp,
-                    bottom = if (viewModel.showBatchActions && viewModel.selectedApps.isNotEmpty()) 88.dp else 16.dp
+                    bottom = 16.dp
                 )
             ) {
                 // 获取分组后的应用列表
@@ -280,7 +516,10 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     val profile = Natives.getAppProfile(app.packageName, app.uid)
                                     val updatedProfile = profile.copy(allowSu = allowSu)
                                     if (Natives.setAppProfile(updatedProfile)) {
-                                        viewModel.fetchAppList()
+                                        // 不重新获取应用列表，避免滚动位置重置
+                                        // viewModel.fetchAppList()
+                                        // 仅更新当前应用的配置
+                                        viewModel.updateAppProfileLocally(app.packageName, updatedProfile)
                                     }
                                 }
                             },
@@ -319,7 +558,10 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     val profile = Natives.getAppProfile(app.packageName, app.uid)
                                     val updatedProfile = profile.copy(allowSu = allowSu)
                                     if (Natives.setAppProfile(updatedProfile)) {
-                                        viewModel.fetchAppList()
+                                        // 不重新获取应用列表，避免滚动位置重置
+                                        // viewModel.fetchAppList()
+                                        // 仅更新当前应用的配置
+                                        viewModel.updateAppProfileLocally(app.packageName, updatedProfile)
                                     }
                                 }
                             },
@@ -358,7 +600,10 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     val profile = Natives.getAppProfile(app.packageName, app.uid)
                                     val updatedProfile = profile.copy(allowSu = allowSu)
                                     if (Natives.setAppProfile(updatedProfile)) {
-                                        viewModel.fetchAppList()
+                                        // 不重新获取应用列表，避免滚动位置重置
+                                        // viewModel.fetchAppList()
+                                        // 仅更新当前应用的配置
+                                        viewModel.updateAppProfileLocally(app.packageName, updatedProfile)
                                     }
                                 }
                             },
@@ -539,27 +784,73 @@ private fun AppItem(
             }
 
             if (!viewModel.showBatchActions) {
-                Switch(
-                    checked = app.allowSu,
-                    onCheckedChange = onSwitchChange,
-                    colors = SwitchDefaults.colors(
-                        checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                        checkedTrackColor = MaterialTheme.colorScheme.primary,
-                        checkedIconColor = MaterialTheme.colorScheme.primary,
-                        uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                        uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-                        uncheckedIconColor = MaterialTheme.colorScheme.surfaceVariant
+                // 开关交互源
+                val switchInteractionSource = remember { MutableInteractionSource() }
+                val isSwitchPressed by switchInteractionSource.collectIsPressedAsState()
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    AnimatedVisibility(
+                        visible = isSwitchPressed,
+                        enter = expandHorizontally() + fadeIn(),
+                        exit = shrinkHorizontally() + fadeOut()
+                    ) {
+                        Text(
+                            text = if (app.allowSu) stringResource(R.string.authorized) else stringResource(R.string.unauthorized),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (app.allowSu) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                    }
+
+                    Switch(
+                        checked = app.allowSu,
+                        onCheckedChange = onSwitchChange,
+                        interactionSource = switchInteractionSource,
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                            checkedTrackColor = MaterialTheme.colorScheme.primary,
+                            checkedIconColor = MaterialTheme.colorScheme.primary,
+                            uncheckedThumbColor = MaterialTheme.colorScheme.outline,
+                            uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                            uncheckedIconColor = MaterialTheme.colorScheme.surfaceVariant
+                        )
                     )
-                )
+                }
             } else {
-                Checkbox(
-                    checked = isSelected,
-                    onCheckedChange = { onToggleSelection() },
-                    colors = CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.primary,
-                        uncheckedColor = MaterialTheme.colorScheme.outline
+                // 复选框交互源
+                val checkboxInteractionSource = remember { MutableInteractionSource() }
+                val isCheckboxPressed by checkboxInteractionSource.collectIsPressedAsState()
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    AnimatedVisibility(
+                        visible = isCheckboxPressed,
+                        enter = expandHorizontally() + fadeIn(),
+                        exit = shrinkHorizontally() + fadeOut()
+                    ) {
+                        Text(
+                            text = if (isSelected) stringResource(R.string.selected) else stringResource(R.string.select),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+                            modifier = Modifier.padding(end = 4.dp)
+                        )
+                    }
+
+                    Checkbox(
+                        checked = isSelected,
+                        onCheckedChange = { onToggleSelection() },
+                        interactionSource = checkboxInteractionSource,
+                        colors = CheckboxDefaults.colors(
+                            checkedColor = MaterialTheme.colorScheme.primary,
+                            uncheckedColor = MaterialTheme.colorScheme.outline
+                        )
                     )
-                )
+                }
             }
         }
     }

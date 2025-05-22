@@ -1,6 +1,6 @@
 # SukiSU - Zako Edition!
 
-**日本語** | [简体中文](README.md) | [English](README-en.md)
+**日本語** | [简体中文](README.md) | [English](README-en.md) | [Türkçe](README-tr.md)
 
 [KernelSU](https://github.com/tiann/KernelSU) をベースとした Android デバイスの root ソリューション
 
@@ -16,22 +16,24 @@
 >
 > ただし、将来的には KSU とは別に管理されるブランチとなる予定です。
 
-- GKI 非対応なデバイスに完全に適応 (susfs-dev と unsusfs-patched dev ブランチのみ)
-
 ## 追加方法
 
-susfs-stable または susfs-dev ブランチ (GKI 非対応デバイスに対応する統合された susfs) 使用してください。
+メイン分岐の使用（GKI デバイス以外のビルドはサポートされていません。）
 ```
-curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 ```
 
-メインブランチを使用する場合
+GKI以外のデバイスをサポートするブランチを使用する
 ```
-curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setup.sh" | bash -s main
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
 ```
+
 ## 統合された susfs の使い方
 
 1. パッチを当てずに susfs-dev ブランチを直接使用してください。
+```
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
+```
 
 ## KPM に対応
 
@@ -42,9 +44,28 @@ curl -LSs "https://raw.githubusercontent.com/ShirkNeko/KernelSU/main/kernel/setu
 
 KPM テンプレートのアドレス: https://github.com/udochina/KPM-Build-Anywhere
 
+> [!Note]
+> 1. `CONFIG_KPM=y` が必要である。
+> 2.非 GKI デバイスには `CONFIG_KALLSYMS=y` と `CONFIG_KALLSYMS_ALL=y` も必要です。
+> 3.いくつかのカーネル `4.19` およびそれ以降のソースコードでは、 `4.19` からバックポートされた `set_memory.h` ヘッダーファイルも必要です。
+
+
+## ROOT を保持するシステムアップデートの方法
+- OTAの後、最初に再起動せず、マネージャのフラッシュ/パッチカーネルインターフェイスに移動し、`GKI/non_GKI 取り付け`を見つけ、フラッシュする必要があるAnykernel3カーネルzipファイルを選択し、フラッシュするためにシステムの現在の実行スロットと反対のスロットを選択し、GKIモードアップデートを保持するために再起動します（この方法は、現時点ではすべてのnon_GKIデバイスでサポートされていませんので、各自でお試しください。 (この方法は、すべての非GKIデバイスでサポートされていませんので、ご自身でお試しください)。
+- または、LKMモードを使用して未使用のスロットにインストールします(OTA後)。
+
+## 互換性ステータス
+- KernelSU（v1.0.0より前のバージョン）はAndroid GKI 2.0デバイス（カーネル5.10以上）を公式にサポートしています。
+
+- 古いカーネル（4.4+）も互換性がありますが、カーネルは手動でビルドする必要があります。
+
+- KernelSU は追加のリバースポートを通じて 3.x カーネル (3.4-3.18) をサポートしています。
+
+- 現在は `arm64-v8a`、`armeabi-v7a (bare)`、いくつかの `X86_64` をサポートしています。
+
 ## その他のリンク
 
-SukiSU と susfs をベースにコンパイルされたプロジェクトです。
+**監督に翻訳を提出する必要がある場合は、https://crowdin.com/project/SukiSU-Ultra。
 
 - [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) 
 - [OnePlus](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
@@ -66,12 +87,14 @@ SukiSU と susfs をベースにコンパイルされたプロジェクトです
 
 ## 使い方
 
-### GKI
+### ユニバーサルGKI
 
-このガイドに従ってください。
+https://kernelsu.org/zh_CN/guide/installation.html をご参照ください。
 
-https://kernelsu.org/ja_JP/guide/installation.html
-
+> [!Note]
+> 1.Xiaomi、Redmi、Samsung などの GKI 2.0 を搭載したデバイス用 (Meizu、Yiga、Zenith、oppo などのマジックカーネルを搭載したメーカーは除く)。
+> 2. [more links](#%E6%9B%B4%E5%A4%9A%E9%93%BE%E6%8E%A5) で GKI ビルドを検索します。 デバイスのカーネルバージョンを検索します。 次に、それをダウンロードし、TWRPまたはカーネルフラッシングツールを使用して、AnyKernel3の接尾辞が付いたzipファイルをフラッシュします。
+> 接尾辞なしの.zipアーカイブは非圧縮で、接尾辞gzはTenguetモデルで使用されている圧縮方法です。
 ### OnePlus
 
 1. `その他のリンク`の項目に記載されているリンクを開き、デバイス情報を使用してカスタマイズされたカーネルをビルドし、AnyKernel3 の接頭辞を持つ .zip ファイルをフラッシュします。

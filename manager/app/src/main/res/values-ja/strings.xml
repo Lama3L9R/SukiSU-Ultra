@@ -109,14 +109,14 @@
     <string name="app_profile_template_import_empty">クリップボードが空です！</string>
     <string name="module_changelog_failed">変更ログの取得に失敗しました: %s</string>
     <string name="settings_check_update">更新を確認する</string>
-    <string name="settings_check_update_summary">アプリを開いたときに更新を自動的に確認します</string>
+    <string name="settings_check_update_summary">アプリの起動時に更新を自動で確認します</string>
     <string name="grant_root_failed">root の付与に失敗しました！</string>
     <string name="action">アクション</string>
     <string name="open">開く</string>
     <string name="enable_web_debugging">WebView デバッグを有効化する</string>
     <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください</string>
     <string name="direct_install">直接インストール (推奨)</string>
-    <string name="select_file">パッチを適用する必要があるミラーを選択</string>
+    <string name="select_file">パッチを行うイメージを選択してください</string>
     <string name="install_inactive_slot">非アクティブなスロットにインストール (OTA 後)</string>
     <string name="install_inactive_slot_warning">再起動後、デバイスは**強制的に**、現在非アクティブなスロットから起動します。
 \nこのオプションは、OTA が完了した後にのみ使用してください。
@@ -170,7 +170,7 @@
     <string name="allowlist_restore_failed">許可リストの復元に失敗: %1$s</string>
     <string name="backup_allowlist">許可リストをバックアップ</string>
     <string name="restore_allowlist">許可リストを復元</string>
-    <string name="settings_custom_background">カスタムアプリ背景</string>
+    <string name="settings_custom_background">アプリの背景を変更</string>
     <string name="settings_custom_background_summary">背景にする画像を選択してください</string>
     <string name="settings_card_alpha">ナビゲーションバーの透過</string>
     <string name="settings_restore_default">デフォルトに復元</string>
@@ -188,14 +188,14 @@
     <string name="selinux_disabled">無効</string>
     <string name="simple_mode">シンプルモード</string>
     <string name="simple_mode_summary">ON にすると不要なカードを非表示にします</string>
-    <string name="hide_kernel_kernelsu_version">カーネルのバージョンを非表示にする</string>
+    <string name="hide_kernel_kernelsu_version">カーネルのバージョンを非表示</string>
     <string name="hide_kernel_kernelsu_version_summary">カーネルのバージョンを非表示にします</string>
-    <string name="hide_other_info">その他の情報を非表示にする</string>
+    <string name="hide_other_info">その他の情報を非表示</string>
     <string name="hide_other_info_summary">ホームページ上のスーパーユーザー、モジュール、KPM モジュールの数に関する情報を非表示にします</string>
-    <string name="hide_susfs_status">SuSFS ステータスを非表示にする</string>
+    <string name="hide_susfs_status">SuSFS ステータスを非表示</string>
     <string name="hide_susfs_status_summary">ホームページ上の SuSFS ステータス情報を非表示にします</string>
-    <string name="hide_link_card">リンクカードのステータスを隠す</string>
-    <string name="hide_link_card_summary">ホームページのリンクカード情報を隠す</string>
+    <string name="hide_link_card">リンクカードのステータスを非表示</string>
+    <string name="hide_link_card_summary">ホームページ上のリンクカード情報を非表示にします</string>
     <string name="theme_mode">テーマ</string>
     <string name="theme_follow_system">システムに従う</string>
     <string name="theme_light">ライト</string>
@@ -222,11 +222,11 @@
     <string name="yes">はい</string>
     <string name="no">いいえ</string>
     <string name="failed_reboot">再起動に失敗しました</string>
-    <string name="batch_authorization">Bulk ライセンス</string>
-    <string name="batch_cancel_authorization">認証を一括でキャンセル</string>
+    <string name="batch_authorization">権限を付与</string>
+    <string name="batch_cancel_authorization">撤回する</string>
     <string name="backup">バックアップ</string>
     <string name="color_yellow">イエロー</string>
-    <string name="kpm_title">カーネルモジュール</string>
+    <string name="kpm_title">KPM</string>
     <string name="kpm_empty">カーネルモジュールは現在インストールされていません</string>
     <string name="kpm_version">バージョン</string>
     <string name="kpm_author">作者</string>
@@ -244,7 +244,7 @@
     <string name="home_ContributionCard_kernelsu">SukiSU Ultra の今後にご期待ください</string>
     <string name="kpm_control_success">成功</string>
     <string name="kpm_control_failed">失敗</string>
-    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra は将来的に KSU から比較的に独立したブランチになりますが、公式の KernelSU や MKSU などの貢献は引き続き感謝しています！</string>
+    <string name="home_click_to_ContributionCard_kernelsu">SukiSU Ultra は将来的に KSU から比較的に独立したブランチになりますが、公式の KernelSU や MKSU などの貢献に感謝しています！</string>
     <string name="not_supported">非対応</string>
     <string name="supported">対応</string>
     <string name="home_kpm_module">"KPM モジュールの数: %d "</string>
@@ -298,7 +298,7 @@
     <string name="flash_failed_message">フラッシュに失敗しました</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM の修復またはインストール</string>
-    <string name="GKI_install_methods">GKI/non-GKI のインストール</string>
+    <string name="GKI_install_methods">GKI または 非 GKI のインストール</string>
     <string name="kernel_version_log">カーネルのバージョン: %1$s</string>
     <string name="tool_version_log">パッチ適用ツールの使用: %1$s</string>
     <string name="configuration">設定</string>
@@ -317,11 +317,54 @@
     <string name="advanced_settings">高度な設定</string>
     <string name="appearance_settings">ツールバーをカスタマイズ</string>
     <string name="back">戻る</string>
-    <string name="expand">最高の状態</string>
-    <string name="collapse">設置</string>
+    <string name="expand">展開する</string>
+    <string name="collapse">折りたたむ</string>
     <string name="susfs_enabled">SuSFS 有効</string>
     <string name="susfs_disabled">SuSFS 無効</string>
     <string name="background_set_success">背景の設定が成功しました</string>
     <string name="background_removed">カスタム背景を削除しました</string>
-    <string name="root_require_for_install">root 権限が必要</string>
+    <string name="root_require_for_install">root 権限が必要です</string>
+    <!-- KPM display settings -->
+    <string name="show_kpm_info">KPM 機能を表示</string>
+    <string name="show_kpm_info_summary">KPM の情報と機能をホームとボトムバーに表示します (アプリを開き直す必要があります)</string>
+    <!-- Webui X settings -->
+    <string name="use_webuix">WebUI X を使用する</string>
+    <string name="use_webuix_summary">より多くの API をサポートする WebUI の代わりに WebUI X を使用します</string>
+    <string name="use_webuix_eruda">WebUI に Eruda をインジェクトする</string>
+    <string name="use_webuix_eruda_summary">デバッグを容易にするために WebUI X にデバッグコンソールを挿入します。Web デバッグが ON になっている必要があります。</string>
+    <!-- DPI setting related strings -->
+    <string name="dpi_settings">DPI の設定</string>
+    <string name="app_dpi_title">DPI の変更を適用</string>
+    <string name="app_dpi_summary">このアプリのみで画面表示密度を調整します</string>
+    <string name="dpi_size_small">小 </string>
+    <string name="dpi_size_medium">中 </string>
+    <string name="dpi_size_large">大</string>
+    <string name="dpi_size_extra_large">特大</string>
+    <string name="dpi_size_custom">カスタマイズ</string>
+    <string name="dpi_apply_settings">DPI の設定を適用する</string>
+    <string name="dpi_confirm_title">DPI の変更を確認</string>
+    <string name="dpi_confirm_message">アプリの DPI を %1$d から %2$d に変更してもよろしいですか？</string>
+    <string name="dpi_confirm_summary">変更した DPI 設定を適用するにはアプリを再起動する必要がありますが、システムステータスバーや他のアプリには影響しません</string>
+    <string name="dpi_applied_success">DPI は %1$d に変更されました。アプリの再起動後に適用されます。</string>
+    <!-- Language settings related strings -->
+    <string name="language_setting">アプリの言語</string>
+    <string name="language_follow_system">システムに従う</string>
+    <string name="language_changed">言語の変更を適用するために再起動しています</string>
+    <string name="settings_card_dim">カードの暗さを調整</string>
+    <!-- Super User Related -->
+    <string name="scroll_to_top">上詰め</string>
+    <string name="scroll_to_bottom">画面下</string>
+    <string name="scroll_to_top_description">一番上までスクロール</string>
+    <string name="scroll_to_bottom_description">下までスクロールします</string>
+    <string name="authorized">承認済み</string>
+    <string name="unauthorized">未認証</string>
+    <string name="selected">選択中</string>
+    <string name="select">オプション</string>
+    <string name="profile_umount_modules_disable">カスタムアンインストールモジュールを無効にする</string>
+    <!-- Flash related -->
+    <string name="error_code">エラーコード</string>
+    <string name="check_log">ログを確認してください</string>
+    <string name="installing_module">モジュール設置中 %1$d/%2$d</string>
+    <string name="module_failed_count">%d モジュールのインストールに失敗しました</string>
+    <string name="module_download_error">モデルのダウンロードに失敗しました</string>
 </resources>

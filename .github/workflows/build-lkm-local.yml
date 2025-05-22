@@ -1,4 +1,4 @@
-name: Build LKM for KernelSU
+name: Build LKM for KernelSU Local
 on:
   workflow_call:
     inputs:
@@ -42,7 +42,7 @@ jobs:
             sub_level: 87
             os_patch_level: 2025-05
     # uses: ./.github/workflows/gki-kernel-mock.yml when debugging
-    uses: ./.github/workflows/gki-kernel.yml
+    uses: ./.github/workflows/gki-kernel-local.yml
     with:
       version: ${{ matrix.version }}
       version_name: ${{ matrix.version }}.${{ matrix.sub_level }}
@@ -52,7 +52,7 @@ jobs:
 
   push-to-branch:
     needs: [build-lkm]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: ${{ inputs.upload }}
     steps:
       - name: Download all workflow run artifacts

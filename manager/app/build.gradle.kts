@@ -136,9 +136,9 @@ dependencies {
     implementation("org.lsposed.libcxx:libcxx:27.0.12077973")
     implementation("androidx.documentfile:documentfile:1.0.1")
 
-    implementation("com.github.MMRLApp.MMRL:platform:v33560")
-    compileOnly("com.github.MMRLApp.MMRL:hidden-api:v33560")
-    implementation("com.github.MMRLApp.MMRL:webui:v33560")
-    implementation("com.github.MMRLApp.MMRL:ui:v33560")
+    implementation("com.github.MMRLApp.MMRL:platform:v33624")
+    compileOnly("com.github.MMRLApp.MMRL:hidden-api:v33624")
+    implementation("com.github.MMRLApp.MMRL:webui:v33624")
+    implementation("com.github.MMRLApp.MMRL:ui:v33624")
 
 }

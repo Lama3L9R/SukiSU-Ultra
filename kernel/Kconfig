@@ -16,20 +16,13 @@ config KSU_DEBUG
 	help
 	  Enable KernelSU debug mode.
 
-config KSU_HOOK
-	bool "Enable KernelSU Hook"
-	default n
-	help
-	  This option enables the KernelSU Hook feature. If enabled, it will
-	  override the kernel version check and enable the hook functionality.
-
 config KPM
 	bool "Enable SukiSU KPM"
+	depends on KSU && 64BIT
 	default n
 	help
 	  Enabling this option will activate the KPM feature of SukiSU.
 	  This option is suitable for scenarios where you need to force KPM to be enabled.
 	  but it may affect system stability.
-
 
 endmenu

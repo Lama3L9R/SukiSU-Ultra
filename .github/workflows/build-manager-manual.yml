@@ -1,20 +1,6 @@
-name: Build Manager
+name: Build Manager Manual
 
 on:
-  push:
-    branches: [ "main", "ci" ]
-    paths:
-      - '.github/workflows/build-manager.yml'
-      - 'manager/**'
-      - 'kernel/**'
-      - 'userspace/ksud/**'
-      - 'userspace/susfs/**'
-      - 'userspace/kpmmgr/**'
-  pull_request:
-    branches: [ "main" ]
-    paths:
-      - 'manager/**'
-  workflow_call:
   workflow_dispatch:
     inputs:
       build_lkm:
@@ -33,7 +19,7 @@ on:
         description: "Whether to upload lkm"
 jobs:
   check-build-lkm:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       build_lkm: ${{ steps.check-build.outputs.build_lkm }}
       upload_lkm: ${{ steps.check-build.outputs.upload_lkm }}
@@ -60,7 +46,7 @@ jobs:
             LKM_COMMIT=$(echo "$LKM_COMMIT" | tr -d '[:space:]')
             echo "LKM_COMMIT=$LKM_COMMIT"
             git fetch origin "$LKM_COMMIT" --depth=1
-            git diff --quiet "$LKM_COMMIT" "$CURRENT_COMMIT" -- kernel :!kernel/setup.sh .github/workflows/build-lkm.yml .github/workflows/build-kernel-*.yml && kernel_changed=false
+            git diff --quiet "$LKM_COMMIT" "$CURRENT_COMMIT" -- kernel :!kernel/setup.sh .github/workflows/build-lkm-local.yml .github/workflows/build-kernel-*.yml && kernel_changed=false
             cd ..
             rm -rf tmp
           fi
@@ -78,7 +64,7 @@ jobs:
 
   build-lkm:
     needs: check-build-lkm
-    uses: ./.github/workflows/build-lkm.yml
+    uses: ./.github/workflows/build-lkm-local.yml
     if: ${{ needs.check-build-lkm.outputs.build_lkm == 'true' }}
     with:
       upload: ${{ needs.check-build-lkm.outputs.upload_lkm == 'true' }}
@@ -131,7 +117,7 @@ jobs:
   build-manager:
     if: ${{ always() }}
     needs: build-ksud
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     defaults:
       run:
         working-directory: ./manager
@@ -163,19 +149,7 @@ jobs:
             } >> gradle.properties
             echo "${{ secrets.KEYSTORE }}" | base64 -d > key.jks
           fi
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 21
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
+                  
       - name: Download arm64 susfs
         uses: actions/download-artifact@v4
         with:
@@ -227,6 +201,8 @@ jobs:
 
       - name: Build with Gradle
         run: |
+          export ANDROID_HOME=/root/.android/sdk
+          export PATH=$ANDROID_HOME/platform-tools:$ANDROID_HOME/tools:$ANDROID_HOME/tools/bin:$PATH
           {
             echo 'org.gradle.parallel=true'
             echo 'org.gradle.vfs.watch=true'
@@ -235,6 +211,7 @@ jobs:
           } >> gradle.properties
           sed -i 's/org.gradle.configuration-cache=true//g' gradle.properties
           ./gradlew clean assembleRelease
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         if: ${{ ( github.event_name != 'pull_request' && github.ref == 'refs/heads/main' ) || github.ref_type == 'tag' }}
@@ -271,6 +248,5 @@ jobs:
           if [ ! -z "${{ secrets.BOT_TOKEN }}" ]; then
             export VERSION=$(git rev-list --count HEAD)
             APK=$(find ./app/build/outputs/apk/release -name "*.apk")
-            pip3 install telethon
             python3 $GITHUB_WORKSPACE/scripts/ksubot.py $APK
           fi

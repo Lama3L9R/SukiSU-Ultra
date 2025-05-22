@@ -307,9 +307,9 @@
     <string name="currently_selected">Currently</string>
     <!--  String resources used in SuperUser -->
     <string name="clear">Removals</string>
-    <string name="apps_with_root">Root Application of permissions</string>
-    <string name="apps_with_custom_profile">Customized Configuration Application</string>
-    <string name="other_apps">Other Applications</string>
+    <string name="apps_with_root">Applications with root privileges</string>
+    <string name="apps_with_custom_profile">Applications with customized configurations</string>
+    <string name="other_apps">Applications with unchanged defaults</string>
     <string name="no_apps_found">Application not found</string>
     <string name="selinux_enabled_toast">SELinux Enabled</string>
     <string name="selinux_disabled_toast">SELinux Disabled</string>
@@ -346,4 +346,25 @@
     <string name="dpi_confirm_message">Are you sure you want to change the application DPI from %1$d to %2$d?</string>
     <string name="dpi_confirm_summary">Application needs to be restarted to apply the new DPI settings, does not affect the system status bar or other applications</string>
     <string name="dpi_applied_success">DPI has been set to %1$d, effective after restarting the application</string>
+    <!-- Language settings related strings -->
+    <string name="language_setting">App Language</string>
+    <string name="language_follow_system">Follow System</string>
+    <string name="language_changed">Language changed, restarting to apply changes</string>
+    <string name="settings_card_dim">Card Darkness Adjustment</string>
+    <!-- Super User Related -->
+    <string name="scroll_to_top">Top</string>
+    <string name="scroll_to_bottom">Bottom</string>
+    <string name="scroll_to_top_description">Scroll to top</string>
+    <string name="scroll_to_bottom_description">Scroll to the bottom</string>
+    <string name="authorized">authorized</string>
+    <string name="unauthorized">unauthorized</string>
+    <string name="selected">Selected</string>
+    <string name="select">option</string>
+    <string name="profile_umount_modules_disable">Disable custom uninstallation module</string>
+    <!-- Flash related -->
+    <string name="error_code">error code</string>
+    <string name="check_log">Please check the log</string>
+    <string name="installing_module">Module being installed %1$d/%2$d</string>
+    <string name="module_failed_count">%d Failed to install a new module</string>
+    <string name="module_download_error">Module download failed</string>
 </resources>

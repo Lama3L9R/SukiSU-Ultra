@@ -1,6 +1,6 @@
 # SukiSU - Zako Edition!
 
-**简体中文** | [English](README-en.md) | [日本語](README-ja.md)
+**简体中文** | [English](README-en.md) | [日本語](README-ja.md) | [Türkçe](README-tr.md)
 
 基于 [KernelSU](https://github.com/tiann/KernelSU) 的安卓设备 root 解决方案
 
@@ -18,23 +18,23 @@
 
 在内核源码的根目录下执行以下命令：
 
-使用 susfs-dev 分支（已集成susfs，带非GKI设备的支持）
-
-**susfs-dev脚本还没改，别急哈**
-
+使用 main 分支 (不支持非GKI设备构建)
 ```
-curl -LSs "https://raw.githubusercontent.com/ShirkNeko/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s main
 ```
 
-
-使用 zako 分支
+使用支持非 GKI 设备的分支
 ```
-curl -LSs "https://raw.githubusercontent.com/Lama3L9r/SukiSU-Zako/zako/kernel/setup.sh" | bash -s zako
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s nongki
 ```
 
 ## 如何集成 susfs
 
 改了一堆内核内容没合到susfs分支，暂时不支持，人话：没做完别急
+
+```
+curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s susfs-dev
+```
 
 ## 钩子方法
 
@@ -60,8 +60,32 @@ curl -LSs "https://raw.githubusercontent.com/Lama3L9r/SukiSU-Zako/zako/kernel/se
 
 KPM 模板地址: https://github.com/udochina/KPM-Build-Anywhere
 
-KPM模板地址: https://github.com/udochina/KPM-Build-Anywhere
+> [!Note]
+> 1. 需要 `CONFIG_KPM=y`
+> 2. 非GKI设备还需要 `CONFIG_KALLSYMS=y` 和 `CONFIG_KALLSYMS_ALL=y`
+> 3. 部分内核 `4.19` 以下源码还需要从 `4.19` 向后移植头文件 `set_memory.h`
 
+
+## 如何进行系统更新保留ROOT
+- OTA后先不要重启，进入管理器刷写/修补内核界面，找到 `GKI/non_GKI安装` 选择需要刷写的Anykernel3内核压缩文件，选择与现在系统运行槽位相反的槽位进行刷写并重启即可保留GKI模式更新（暂不支持所有非GKI设备使用这种方法，请自行尝试。非GKI设备使用TWRP刷写是最稳妥的）
+- 或者使用LKM模式的安装到未使用的槽位（OTA后）
+
+## 兼容状态
+- KernelSU（v1.0.0 之前版本）正式支持 Android GKI 2.0 设备（内核 5.10+）
+
+- 旧内核（4.4+）也兼容，但必须手动构建内核
+
+- 通过更多的反向移植，KernelSU 可以支持 3.x 内核（3.4-3.18）
+
+- 目前支持 `arm64-v8a` ，`armeabi-v7a (bare)` 和部分 `X86_64`
+
+## 更多链接
+
+**如果你需要为管理器提交翻译请前往** https://crowdin.com/project/SukiSU-Ultra
+
+基于 SukiSU 和 susfs 编译的项目
+- [GKI](https://github.com/ShirkNeko/GKI_KernelSU_SUSFS) 
+- [一加](https://github.com/ShirkNeko/Action_OnePlus_MKSU_SUSFS)
 
 ## 使用方法
 
@@ -85,8 +109,10 @@ KPM模板地址: https://github.com/udochina/KPM-Build-Anywhere
 - `kernel` 目录下的文件是 [GPL-2.0-only](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)。
 - 除 `kernel` 目录外，所有其他部分均为 [GPL-3.0 或更高版本](https://www.gnu.org/licenses/gpl-3.0.html)。
 
-我不懂许可证，在不与原始许可证不冲突的前提下，所有新增代码按照 Anti-996 许可证走。
-若出现冲突条例，以源许可证为准。
+## 爱发电链接
+- https://afdian.com/a/shirkneko
+
+## 赞助名单
 
 ## 赞助名单 (上游的，也欢迎通过 GitHub 赞助我)
 - [Ktouls](https://github.com/Ktouls) 非常感谢你给我带来的支持

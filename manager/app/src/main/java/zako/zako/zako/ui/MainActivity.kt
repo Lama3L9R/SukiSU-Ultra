@@ -1,6 +1,8 @@
 package zako.zako.zako.ui
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.content.res.Configuration
 import android.database.ContentObserver
 import android.os.Build
 import android.os.Bundle
@@ -36,6 +38,7 @@ import zako.zako.zako.ui.util.*
 import androidx.core.content.edit
 import zako.zako.zako.ui.theme.CardConfig.cardElevation
 import zako.zako.zako.ui.webui.initPlatform
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     private inner class ThemeChangeContentObserver(
@@ -48,8 +51,49 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    // 应用保存的语言设置
+    @SuppressLint("ObsoleteSdkInt")
+    private fun applyLanguageSetting() {
+        val prefs = getSharedPreferences("settings", MODE_PRIVATE)
+        val languageCode = prefs.getString("app_language", "") ?: ""
+
+        if (languageCode.isNotEmpty()) {
+            val locale = Locale.forLanguageTag(languageCode)
+            Locale.setDefault(locale)
+
+            val resources = resources
+            val config = Configuration(resources.configuration)
+            config.setLocale(locale)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                createConfigurationContext(config)
+            } else {
+                @Suppress("DEPRECATION")
+                resources.updateConfiguration(config, resources.displayMetrics)
+            }
+        }
+    }
+
+    override fun attachBaseContext(newBase: Context) {
+        val prefs = newBase.getSharedPreferences("settings", MODE_PRIVATE)
+        val languageCode = prefs.getString("app_language", "") ?: ""
+
+        var context = newBase
+        if (languageCode.isNotEmpty()) {
+            val locale = Locale.forLanguageTag(languageCode)
+            Locale.setDefault(locale)
+
+            val config = Configuration(newBase.resources.configuration)
+            config.setLocale(locale)
+            context = newBase.createConfigurationContext(config)
+        }
+
+        super.attachBaseContext(context)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
-        // 应用DPI设置（仅对当前应用生效）
+        // 确保应用正确的语言设置
+        applyLanguageSetting()
+
         applyCustomDpi()
 
         // Enable edge to edge
@@ -136,7 +180,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // 应用自定义DPI设置（仅对当前应用生效）
+    // 应用自定义DPI设置
     private fun applyCustomDpi() {
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         val customDpi = prefs.getInt("app_dpi", 0)
@@ -145,9 +189,8 @@ class MainActivity : ComponentActivity() {
             try {
                 val resources = resources
                 val metrics = resources.displayMetrics
-
-                // 仅更新应用内显示，不影响系统状态栏
                 metrics.density = customDpi / 160f
+                @Suppress("DEPRECATION")
                 metrics.scaledDensity = customDpi / 160f
                 metrics.densityDpi = customDpi
             } catch (e: Exception) {
@@ -167,6 +210,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
+        applyLanguageSetting()
+
         if (!ThemeConfig.backgroundImageLoaded && !ThemeConfig.preventBackgroundRefresh) {
             loadCustomBackground()
         }
@@ -177,6 +222,11 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         destroyListeners.forEach { it() }
         super.onDestroy()
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        applyLanguageSetting()
     }
 }
 

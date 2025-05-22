@@ -60,7 +60,7 @@ fun SwitchItem(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                maxLines = 1,
+                maxLines = Int.MAX_VALUE,
                 overflow = TextOverflow.Ellipsis
             )
         },

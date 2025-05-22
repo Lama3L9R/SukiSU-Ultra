@@ -3,8 +3,6 @@ package zako.zako.zako.ui.webui
 import android.content.ServiceConnection
 import android.util.Log
 import com.dergoogler.mmrl.platform.Platform
-import com.dergoogler.mmrl.platform.hiddenApi.HiddenPackageManager
-import com.dergoogler.mmrl.platform.hiddenApi.HiddenUserManager
 import com.dergoogler.mmrl.platform.model.IProvider
 import com.dergoogler.mmrl.platform.model.PlatformIntent
 import zako.zako.zako.ksuApp
@@ -56,7 +54,3 @@ suspend fun initPlatform() = withContext(Dispatchers.IO) {
         return@withContext false
     }
 }
-
-val Platform.Companion.packageManager get(): HiddenPackageManager = HiddenPackageManager(this.mService)
-val Platform.Companion.userManager get(): HiddenUserManager = HiddenUserManager(this.mService)
-

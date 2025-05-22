@@ -1,7 +1,10 @@
 package zako.zako.zako.ui.screen
 
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Build
 import android.widget.Toast
@@ -36,6 +39,8 @@ import androidx.compose.material.icons.filled.ColorLens
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Security
@@ -84,6 +89,7 @@ import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import zako.zako.zako.R
+import zako.zako.zako.ui.MainActivity
 import zako.zako.zako.ui.component.ImageEditorDialog
 import zako.zako.zako.ui.component.KsuIsValid
 import zako.zako.zako.ui.component.SwitchItem
@@ -108,12 +114,14 @@ import zako.zako.zako.ui.theme.*
 import zako.zako.zako.ui.util.*
 import androidx.core.content.edit
 import zako.zako.zako.*
+import java.util.Locale
 import kotlin.math.roundToInt
 
 fun saveCardConfig(context: Context) {
     CardConfig.save(context)
 }
 
+@SuppressLint("LocalContextConfigurationRead", "ObsoleteSdkInt")
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable
@@ -147,6 +155,129 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
         stringResource(R.string.theme_light),
         stringResource(R.string.theme_dark)
     )
+
+    // 获取当前语言设置
+    var currentLanguage by remember {
+        mutableStateOf(prefs.getString("app_language", "") ?: "")
+    }
+
+    // 获取支持的语言列表
+    val supportedLanguages = remember {
+        val languages = mutableListOf<Pair<String, String>>()
+        languages.add("" to context.getString(R.string.language_follow_system))
+        val locales = context.resources.configuration.locales
+        for (i in 0 until locales.size()) {
+            val locale = locales.get(i)
+            val code = locale.toLanguageTag()
+            if (!languages.any { it.first == code }) {
+                languages.add(code to locale.getDisplayName(locale))
+            }
+        }
+
+        val commonLocales = listOf(
+            Locale.forLanguageTag("en"), // 英语
+            Locale.forLanguageTag("zh-CN"), // 简体中文
+            Locale.forLanguageTag("zh-HK"), // 繁体中文(香港)
+            Locale.forLanguageTag("zh-TW"), // 繁体中文(台湾)
+            Locale.forLanguageTag("ja"), // 日语
+            Locale.forLanguageTag("fr"), // 法语
+            Locale.forLanguageTag("de"), // 德语
+            Locale.forLanguageTag("es"), // 西班牙语
+            Locale.forLanguageTag("it"), // 意大利语
+            Locale.forLanguageTag("ru"), // 俄语
+            Locale.forLanguageTag("pt"), // 葡萄牙语
+            Locale.forLanguageTag("ko"), // 韩语
+            Locale.forLanguageTag("vi")  // 越南语
+        )
+
+        for (locale in commonLocales) {
+            val code = locale.toLanguageTag()
+            if (!languages.any { it.first == code }) {
+                val config = Configuration(context.resources.configuration)
+                config.setLocale(locale)
+                try {
+                    val testContext = context.createConfigurationContext(config)
+                    testContext.getString(R.string.language_follow_system)
+                    languages.add(code to locale.getDisplayName(locale))
+                } catch (_: Exception) {
+                }
+            }
+        }
+        languages
+    }
+
+    var showLanguageDialog by remember { mutableStateOf(false) }
+
+    // 语言切换对话框
+    if (showLanguageDialog) {
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text(stringResource(R.string.language_setting)) },
+            text = {
+                Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+                    supportedLanguages.forEach { (code, name) ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    if (currentLanguage != code) {
+                                        prefs.edit {
+                                            putString("app_language", code)
+                                            commit()
+                                        }
+
+                                        currentLanguage = code
+
+                                        Toast.makeText(
+                                            context,
+                                            context.getString(R.string.language_changed),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                        val locale = if (code.isEmpty()) Locale.getDefault() else Locale.forLanguageTag(code)
+                                        Locale.setDefault(locale)
+                                        val config = Configuration(context.resources.configuration)
+                                        config.setLocale(locale)
+
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                            context.createConfigurationContext(config)
+                                        } else {
+                                            @Suppress("DEPRECATION")
+                                            context.resources.updateConfiguration(config, context.resources.displayMetrics)
+                                        }
+
+                                        val intent = Intent(context, MainActivity::class.java)
+                                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        context.startActivity(intent)
+
+                                        if (context is Activity) {
+                                            context.finish()
+                                        }
+                                    }
+                                    showLanguageDialog = false
+                                }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = currentLanguage == code,
+                                onClick = null
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(name)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = { showLanguageDialog = false }
+                ) {
+                    Text(stringResource(R.string.cancel))
+                }
+            }
+        )
+    }
 
     // 简洁模式开关状态
     var isSimpleMode by remember {
@@ -220,6 +351,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
 
     // 卡片配置状态
     var cardAlpha by rememberSaveable { mutableFloatStateOf(CardConfig.cardAlpha) }
+    var cardDim by rememberSaveable { mutableFloatStateOf(CardConfig.cardDim) }
     var isCustomBackgroundEnabled by rememberSaveable {
         mutableStateOf(ThemeConfig.customBackgroundUri != null)
     }
@@ -232,7 +364,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
     var isCustomizeExpanded by remember { mutableStateOf(false) }
     var isAppearanceExpanded by remember { mutableStateOf(true) }
     var isAdvancedExpanded by remember { mutableStateOf(false) }
-    var isDpiExpanded by remember { mutableStateOf(false) }
 
     // DPI 设置
     val systemDpi = remember { context.resources.displayMetrics.densityDpi }
@@ -268,6 +399,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
         // 加载设置
         CardConfig.load(context)
         cardAlpha = CardConfig.cardAlpha
+        cardDim = CardConfig.cardDim
         isCustomBackgroundEnabled = ThemeConfig.customBackgroundUri != null
 
         // 设置主题模式
@@ -424,6 +556,38 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                     modifier = Modifier.padding(bottom = 16.dp)
                 ) {
                     Column {
+                        // 语言设置
+                        ListItem(
+                            headlineContent = { Text(stringResource(R.string.language_setting)) },
+                            supportingContent = {
+                                Text(supportedLanguages.find { it.first == currentLanguage }?.second
+                                    ?: stringResource(R.string.language_follow_system))
+                            },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Default.Language,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            },
+                            trailingContent = {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.NavigateNext,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            colors = ListItemDefaults.colors(
+                                containerColor = Color.Transparent
+                            ),
+                            modifier = Modifier.clickable { showLanguageDialog = true }
+                        )
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+
                         // 主题模式
                         ListItem(
                             headlineContent = { Text(stringResource(R.string.theme_mode)) },
@@ -518,141 +682,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             }
                         }
 
-                        // 自定义背景开关
-                        ListItem(
-                            headlineContent = { Text(stringResource(id = R.string.settings_custom_background)) },
-                            supportingContent = { Text(stringResource(id = R.string.settings_custom_background_summary)) },
-                            leadingContent = {
-                                Icon(
-                                    Icons.Filled.Wallpaper,
-                                    contentDescription = null,
-                                    tint = if (isCustomBackgroundEnabled)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            trailingContent = {
-                                Switch(
-                                    checked = isCustomBackgroundEnabled,
-                                    onCheckedChange = { isChecked ->
-                                        if (isChecked) {
-                                            pickImageLauncher.launch("image/*")
-                                        } else {
-                                            context.saveCustomBackground(null)
-                                            isCustomBackgroundEnabled = false
-                                            CardConfig.cardElevation
-                                            CardConfig.cardAlpha = 1f
-                                            CardConfig.isCustomAlphaSet = false
-                                            CardConfig.isCustomBackgroundEnabled = false
-                                            saveCardConfig(context)
-                                            cardAlpha = 1f
-
-                                            // 重置其他相关设置
-                                            ThemeConfig.needsResetOnThemeChange = true
-                                            ThemeConfig.preventBackgroundRefresh = false
-
-                                            context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
-                                                .edit {
-                                                    putBoolean(
-                                                        "prevent_background_refresh",
-                                                        false
-                                                    )
-                                                }
-
-                                            Toast.makeText(
-                                                context,
-                                                context.getString(R.string.background_removed),
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
-                                    }
-                                )
-                            },
-                            colors = ListItemDefaults.colors(
-                                containerColor = Color.Transparent
-                            )
-                        )
-
-                        // 透明度 Slider
-                        AnimatedVisibility(
-                            visible = ThemeConfig.customBackgroundUri != null,
-                            enter = fadeIn() + expandVertically(),
-                            exit = fadeOut() + shrinkVertically(),
-                            modifier = Modifier.padding(horizontal = 32.dp)
-                        ) {
-                            Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.padding(bottom = 4.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Filled.Opacity,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(20.dp),
-                                        tint = MaterialTheme.colorScheme.primary
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = stringResource(R.string.settings_card_alpha),
-                                        style = MaterialTheme.typography.titleSmall
-                                    )
-                                    Spacer(modifier = Modifier.weight(1f))
-                                    Text(
-                                        text = "${(cardAlpha * 100).roundToInt()}%",
-                                        style = MaterialTheme.typography.labelMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-
-                                Slider(
-                                    value = cardAlpha,
-                                    onValueChange = { newValue ->
-                                        cardAlpha = newValue
-                                        CardConfig.cardAlpha = newValue
-                                        CardConfig.isCustomAlphaSet = true
-                                        prefs.edit {
-                                            putBoolean("is_custom_alpha_set", true)
-                                            putFloat("card_alpha", newValue)
-                                        }
-                                    },
-                                    onValueChangeFinished = {
-                                        coroutineScope.launch(Dispatchers.IO) {
-                                            saveCardConfig(context)
-                                        }
-                                    },
-                                    valueRange = 0f..1f,
-                                    steps = 20,
-                                    colors = SliderDefaults.colors(
-                                        thumbColor = MaterialTheme.colorScheme.primary,
-                                        activeTrackColor = MaterialTheme.colorScheme.primary,
-                                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // DPI 设置部分
-            SectionHeader(
-                title = stringResource(R.string.dpi_settings),
-                expanded = isDpiExpanded,
-                onToggle = { isDpiExpanded = !isDpiExpanded }
-            )
-
-            AnimatedVisibility(
-                visible = isDpiExpanded,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    tonalElevation = 1.dp,
-                    modifier = Modifier.padding(bottom = 16.dp)
-                ) {
-                    Column {
+                        // DPI 设置
                         ListItem(
                             headlineContent = { Text(stringResource(R.string.app_dpi_title)) },
                             supportingContent = { Text(stringResource(R.string.app_dpi_summary)) },
@@ -738,6 +768,178 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.padding(top = 4.dp)
                             )
+                        }
+
+                        HorizontalDivider(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            color = MaterialTheme.colorScheme.outlineVariant
+                        )
+
+                        // 自定义背景开关
+                        ListItem(
+                            headlineContent = { Text(stringResource(id = R.string.settings_custom_background)) },
+                            supportingContent = { Text(stringResource(id = R.string.settings_custom_background_summary)) },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Filled.Wallpaper,
+                                    contentDescription = null,
+                                    tint = if (isCustomBackgroundEnabled)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = isCustomBackgroundEnabled,
+                                    onCheckedChange = { isChecked ->
+                                        if (isChecked) {
+                                            pickImageLauncher.launch("image/*")
+                                        } else {
+                                            context.saveCustomBackground(null)
+                                            isCustomBackgroundEnabled = false
+                                            CardConfig.cardElevation
+                                            CardConfig.cardAlpha = 1f
+                                            CardConfig.cardDim = 0f
+                                            CardConfig.isCustomAlphaSet = false
+                                            CardConfig.isCustomDimSet = false
+                                            CardConfig.isCustomBackgroundEnabled = false
+                                            saveCardConfig(context)
+                                            cardAlpha = 1f
+                                            cardDim = 0f
+
+                                            // 重置其他相关设置
+                                            ThemeConfig.needsResetOnThemeChange = true
+                                            ThemeConfig.preventBackgroundRefresh = false
+
+                                            context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+                                                .edit {
+                                                    putBoolean(
+                                                        "prevent_background_refresh",
+                                                        false
+                                                    )
+                                                }
+
+                                            Toast.makeText(
+                                                context,
+                                                context.getString(R.string.background_removed),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                )
+                            },
+                            colors = ListItemDefaults.colors(
+                                containerColor = Color.Transparent
+                            )
+                        )
+
+                        // 透明度和亮度调节滑动条
+                        AnimatedVisibility(
+                            visible = ThemeConfig.customBackgroundUri != null,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically(),
+                            modifier = Modifier.padding(horizontal = 32.dp)
+                        ) {
+                            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                                // 透明度滑动条
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Opacity,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.settings_card_alpha),
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Text(
+                                        text = "${(cardAlpha * 100).roundToInt()}%",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                Slider(
+                                    value = cardAlpha,
+                                    onValueChange = { newValue ->
+                                        cardAlpha = newValue
+                                        CardConfig.cardAlpha = newValue
+                                        CardConfig.isCustomAlphaSet = true
+                                        prefs.edit {
+                                            putBoolean("is_custom_alpha_set", true)
+                                            putFloat("card_alpha", newValue)
+                                        }
+                                    },
+                                    onValueChangeFinished = {
+                                        coroutineScope.launch(Dispatchers.IO) {
+                                            saveCardConfig(context)
+                                        }
+                                    },
+                                    valueRange = 0f..1f,
+                                    steps = 20,
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = MaterialTheme.colorScheme.primary,
+                                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                )
+
+                                // 亮度调节滑动条
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.padding(top = 16.dp, bottom = 4.dp)
+                                ) {
+                                    Icon(
+                                        Icons.Filled.LightMode,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = stringResource(R.string.settings_card_dim),
+                                        style = MaterialTheme.typography.titleSmall
+                                    )
+                                    Spacer(modifier = Modifier.weight(1f))
+                                    Text(
+                                        text = "${(cardDim * 100).roundToInt()}%",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+
+                                Slider(
+                                    value = cardDim,
+                                    onValueChange = { newValue ->
+                                        cardDim = newValue
+                                        CardConfig.cardDim = newValue
+                                        CardConfig.isCustomDimSet = true
+                                        prefs.edit {
+                                            putBoolean("is_custom_dim_set", true)
+                                            putFloat("card_dim", newValue)
+                                        }
+                                    },
+                                    onValueChangeFinished = {
+                                        coroutineScope.launch(Dispatchers.IO) {
+                                            saveCardConfig(context)
+                                        }
+                                    },
+                                    valueRange = 0f..1f,
+                                    steps = 20,
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = MaterialTheme.colorScheme.primary,
+                                        activeTrackColor = MaterialTheme.colorScheme.primary,
+                                        inactiveTrackColor = MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                )
+                            }
                         }
                     }
                 }
@@ -988,6 +1190,9 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                             if (!CardConfig.isCustomAlphaSet) {
                                                 CardConfig.cardAlpha = 1f
                                             }
+                                            if (!CardConfig.isCustomDimSet) {
+                                                CardConfig.cardDim = 0.5f
+                                            }
                                             CardConfig.save(context)
                                         }
                                         1 -> { // 浅色
@@ -996,6 +1201,9 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                             CardConfig.isUserDarkModeEnabled = false
                                             if (!CardConfig.isCustomAlphaSet) {
                                                 CardConfig.cardAlpha = 1f
+                                            }
+                                            if (!CardConfig.isCustomDimSet) {
+                                                CardConfig.cardDim = 0f
                                             }
                                             CardConfig.save(context)
                                         }

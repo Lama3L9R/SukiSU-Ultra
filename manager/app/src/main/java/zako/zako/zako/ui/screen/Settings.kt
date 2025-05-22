@@ -12,6 +12,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -32,6 +33,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -645,7 +647,7 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
             )
         }
 
-        var selection = UninstallType.NONE
+        var selectedOption by remember { mutableStateOf<UninstallType?>(null) }
         val cardColor = if (!ThemeConfig.useDynamicColor) {
             ThemeConfig.currentTheme.ButtonContrast
         } else {
@@ -668,55 +670,102 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
                     modifier = Modifier.padding(vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    listOptions.forEachIndexed { index, option ->
+                    options.forEachIndexed { index, option ->
+                        val isSelected = selectedOption == option
+                        val backgroundColor = if (isSelected)
+                            MaterialTheme.colorScheme.primaryContainer
+                        else
+                            Color.Transparent
+                        val borderColor = if (isSelected)
+                            MaterialTheme.colorScheme.primary
+                        else
+                            Color.Transparent
+                        val contentColor = if (isSelected)
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        else
+                            MaterialTheme.colorScheme.onSurface
+
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(MaterialTheme.shapes.medium)
+                                .background(backgroundColor)
+                                .border(
+                                    width = 1.dp,
+                                    color = borderColor,
+                                    shape = MaterialTheme.shapes.medium
+                                )
                                 .clickable {
-                                    selection = options[index]
+                                    selectedOption = option
                                 }
                                 .padding(vertical = 12.dp, horizontal = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                imageVector = options[index].icon,
+                                imageVector = option.icon,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = if (isSelected)
+                                    MaterialTheme.colorScheme.primary
+                                else
+                                    MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .padding(end = 16.dp)
                                     .size(24.dp)
                             )
-                            Column {
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
                                 Text(
-                                    text = option.titleText,
+                                    text = listOptions[index].titleText,
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onSurface
+                                    color = contentColor
                                 )
-                                option.subtitleText?.let {
+                                listOptions[index].subtitleText?.let {
                                     Text(
                                         text = it,
                                         style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        color = if (isSelected)
+                                            contentColor.copy(alpha = 0.8f)
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
+                            }
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.RadioButtonChecked,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.RadioButtonUnchecked,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(24.dp)
+                                )
                             }
                         }
                     }
                 }
             },
             confirmButton = {
-                TextButton(
+                Button(
                     onClick = {
-                        if (selection != UninstallType.NONE) {
-                            onSelected(selection)
-                        }
+                        selectedOption?.let { onSelected(it) }
                         dismiss()
-                    }
+                    },
+                    enabled = selectedOption != null,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary,
+                        disabledContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        disabledContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 ) {
                     Text(
-                        text = stringResource(android.R.string.ok),
-                        color = MaterialTheme.colorScheme.primary
+                        text = stringResource(android.R.string.ok)
                     )
                 }
             },

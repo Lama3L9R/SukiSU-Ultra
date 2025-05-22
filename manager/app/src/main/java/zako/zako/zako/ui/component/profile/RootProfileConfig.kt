@@ -206,28 +206,36 @@ fun GroupsPanel(selected: List<Groups>, closeSelection: (selection: Set<Groups>)
         }
 
         val selection = HashSet(selected)
-        ListDialog(
-            state = rememberUseCaseState(visible = true, onFinishedRequest = {
-                closeSelection(selection)
-            }, onCloseRequest = {
-                dismiss()
-            }),
-            header = Header.Default(
-                title = stringResource(R.string.profile_groups),
-            ),
-            selection = ListSelection.Multiple(
-                showCheckBoxes = true,
-                options = options,
-                maxChoices = 32, // Kernel only supports 32 groups at most
-            ) { indecies, _ ->
-                // Handle selection
-                selection.clear()
-                indecies.forEach { index ->
-                    val group = groups[index]
-                    selection.add(group)
+        val backgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest
+
+        MaterialTheme(
+            colorScheme = MaterialTheme.colorScheme.copy(
+                surface = backgroundColor
+            )
+        ) {
+            ListDialog(
+                state = rememberUseCaseState(visible = true, onFinishedRequest = {
+                    closeSelection(selection)
+                }, onCloseRequest = {
+                    dismiss()
+                }),
+                header = Header.Default(
+                    title = stringResource(R.string.profile_groups),
+                ),
+                selection = ListSelection.Multiple(
+                    showCheckBoxes = true,
+                    options = options,
+                    maxChoices = 32, // Kernel only supports 32 groups at most
+                ) { indecies, _ ->
+                    // Handle selection
+                    selection.clear()
+                    indecies.forEach { index ->
+                        val group = groups[index]
+                        selection.add(group)
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 
     OutlinedCard(
@@ -278,27 +286,35 @@ fun CapsPanel(
         }
 
         val selection = HashSet(selected)
-        ListDialog(
-            state = rememberUseCaseState(visible = true, onFinishedRequest = {
-                closeSelection(selection)
-            }, onCloseRequest = {
-                dismiss()
-            }),
-            header = Header.Default(
-                title = stringResource(R.string.profile_capabilities),
-            ),
-            selection = ListSelection.Multiple(
-                showCheckBoxes = true,
-                options = options
-            ) { indecies, _ ->
-                // Handle selection
-                selection.clear()
-                indecies.forEach { index ->
-                    val group = caps[index]
-                    selection.add(group)
+        val backgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest
+
+        MaterialTheme(
+            colorScheme = MaterialTheme.colorScheme.copy(
+                surface = backgroundColor
+            )
+        ) {
+            ListDialog(
+                state = rememberUseCaseState(visible = true, onFinishedRequest = {
+                    closeSelection(selection)
+                }, onCloseRequest = {
+                    dismiss()
+                }),
+                header = Header.Default(
+                    title = stringResource(R.string.profile_capabilities),
+                ),
+                selection = ListSelection.Multiple(
+                    showCheckBoxes = true,
+                    options = options
+                ) { indecies, _ ->
+                    // Handle selection
+                    selection.clear()
+                    indecies.forEach { index ->
+                        val group = caps[index]
+                        selection.add(group)
+                    }
                 }
-            }
-        )
+            )
+        }
     }
 
     OutlinedCard(
@@ -425,24 +441,33 @@ private fun SELinuxPanel(
             )
         )
 
-        InputDialog(
-            state = rememberUseCaseState(visible = true,
-                onFinishedRequest = {
-                    onSELinuxChange(domain, rules)
-                },
-                onCloseRequest = {
-                    dismiss()
-                }),
-            header = Header.Default(
-                title = stringResource(R.string.profile_selinux_context),
-            ),
-            selection = InputSelection(
-                input = inputOptions,
-                onPositiveClick = { result ->
-                    // Handle selection
-                },
+        val backgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest
+
+        MaterialTheme(
+            colorScheme = MaterialTheme.colorScheme.copy(
+                surface = backgroundColor
             )
-        )
+        ) {
+            InputDialog(
+                state = rememberUseCaseState(
+                    visible = true,
+                    onFinishedRequest = {
+                        onSELinuxChange(domain, rules)
+                    },
+                    onCloseRequest = {
+                        dismiss()
+                    }),
+                header = Header.Default(
+                    title = stringResource(R.string.profile_selinux_context),
+                ),
+                selection = InputSelection(
+                    input = inputOptions,
+                    onPositiveClick = { result ->
+                        // Handle selection
+                    },
+                )
+            )
+        }
     }
 
     ListItem(headlineContent = {

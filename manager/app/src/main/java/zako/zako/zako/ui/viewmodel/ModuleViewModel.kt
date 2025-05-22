@@ -16,12 +16,14 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.text.Collator
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 class ModuleViewModel : ViewModel() {
 
     companion object {
         private const val TAG = "ModuleViewModel"
         private var modules by mutableStateOf<List<ModuleInfo>>(emptyList())
+        private const val CUSTOM_USER_AGENT = "SukiSU-Ultra/2.0"
     }
 
     class ModuleInfo(
@@ -117,6 +119,10 @@ class ModuleViewModel : ViewModel() {
         }
     }
 
+    private fun sanitizeVersionString(version: String): String {
+        return version.replace(Regex("[^a-zA-Z0-9.\\-_]"), "_")
+    }
+
     fun checkUpdate(m: ModuleInfo): Triple<String, String, String> {
         val empty = Triple("", "", "")
         if (m.updateJson.isEmpty() || m.remove || m.update || !m.enabled) {
@@ -126,19 +132,32 @@ class ModuleViewModel : ViewModel() {
         val result = kotlin.runCatching {
             val url = m.updateJson
             Log.i(TAG, "checkUpdate url: $url")
-            val response = okhttp3.OkHttpClient()
-                .newCall(
-                    okhttp3.Request.Builder()
-                        .url(url)
-                        .build()
-                ).execute()
+
+            val client = okhttp3.OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(15, TimeUnit.SECONDS)
+                .build()
+
+            val request = okhttp3.Request.Builder()
+                .url(url)
+                .header("User-Agent", CUSTOM_USER_AGENT)
+                .build()
+
+            val response = client.newCall(request).execute()
+
             Log.d(TAG, "checkUpdate code: ${response.code}")
             if (response.isSuccessful) {
                 response.body?.string() ?: ""
             } else {
+                Log.d(TAG, "checkUpdate failed: ${response.message}")
                 ""
             }
-        }.getOrDefault("")
+        }.getOrElse { e ->
+            Log.e(TAG, "checkUpdate exception", e)
+            ""
+        }
+
         Log.i(TAG, "checkUpdate result: $result")
 
         if (result.isEmpty()) {
@@ -149,7 +168,8 @@ class ModuleViewModel : ViewModel() {
             JSONObject(result)
         }.getOrNull() ?: return empty
 
-        val version = updateJson.optString("version", "")
+        var version = updateJson.optString("version", "")
+        version = sanitizeVersionString(version)
         val versionCode = updateJson.optInt("versionCode", 0)
         val zipUrl = updateJson.optString("zipUrl", "")
         val changelog = updateJson.optString("changelog", "")
