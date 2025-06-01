@@ -113,6 +113,7 @@
     <string name="grant_root_failed">root の付与に失敗しました！</string>
     <string name="action">アクション</string>
     <string name="open">開く</string>
+    <string name="close">閉じる</string>
     <string name="enable_web_debugging">WebView デバッグを有効化する</string>
     <string name="enable_web_debugging_summary">WebUI のデバッグに使用できます。必要な場合でのみ有効化してください</string>
     <string name="direct_install">直接インストール (推奨)</string>
@@ -210,7 +211,7 @@
     <string name="color_orange">オレンジ</string>
     <string name="color_pink">ピンク</string>
     <string name="color_gray">グレー</string>
-    <string name="color_ivory">アイボリー</string>
+    <string name="color_yellow">イエロー</string>
     <string name="flash_option">ブラシの設定</string>
     <string name="flash_option_tip">フラッシュするファイルを選択</string>
     <string name="horizon_kernel">AnyKernel3 をインストール</string>
@@ -225,7 +226,6 @@
     <string name="batch_authorization">権限を付与</string>
     <string name="batch_cancel_authorization">撤回する</string>
     <string name="backup">バックアップ</string>
-    <string name="color_yellow">イエロー</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">カーネルモジュールは現在インストールされていません</string>
     <string name="kpm_version">バージョン</string>
@@ -298,7 +298,7 @@
     <string name="flash_failed_message">フラッシュに失敗しました</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">LKM の修復またはインストール</string>
-    <string name="GKI_install_methods">GKI または 非 GKI のインストール</string>
+    <string name="GKI_install_methods">AnyKernel3 をフラッシュ</string>
     <string name="kernel_version_log">カーネルのバージョン: %1$s</string>
     <string name="tool_version_log">パッチ適用ツールの使用: %1$s</string>
     <string name="configuration">設定</string>
@@ -328,8 +328,10 @@
     <string name="show_kpm_info">KPM 機能を表示</string>
     <string name="show_kpm_info_summary">KPM の情報と機能をホームとボトムバーに表示します (アプリを開き直す必要があります)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">WebUI X を使用する</string>
-    <string name="use_webuix_summary">より多くの API をサポートする WebUI の代わりに WebUI X を使用します</string>
+    <string name="use_webuix">Select the WebUI engine to use</string>
+    <string name="engine_auto_select">Automatic Selection</string>
+    <string name="engine_force_webuix">Force the use of WebUI X</string>
+    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
     <string name="use_webuix_eruda">WebUI に Eruda をインジェクトする</string>
     <string name="use_webuix_eruda_summary">デバッグを容易にするために WebUI X にデバッグコンソールを挿入します。Web デバッグが ON になっている必要があります。</string>
     <!-- DPI setting related strings -->
@@ -367,4 +369,5 @@
     <string name="installing_module">モジュール設置中 %1$d/%2$d</string>
     <string name="module_failed_count">%d モジュールのインストールに失敗しました</string>
     <string name="module_download_error">モデルのダウンロードに失敗しました</string>
+    <string name="kernel_flashing">カーネルをフラッシュ中</string>
 </resources>

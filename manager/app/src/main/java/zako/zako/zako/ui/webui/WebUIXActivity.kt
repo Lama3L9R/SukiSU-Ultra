@@ -69,7 +69,7 @@ class WebUIXActivity : ComponentActivity() {
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
 
         setContent {
-            WebUIXTheme {
+            KernelSUTheme {
                 var isLoading by remember { mutableStateOf(true) }
 
                 LaunchedEffect(Platform.isAlive) {
@@ -82,7 +82,7 @@ class WebUIXActivity : ComponentActivity() {
 
                 if (isLoading) {
                     Loading()
-                    return@WebUIXTheme
+                    return@KernelSUTheme
                 }
 
                 val webDebugging = prefs.getBoolean("enable_web_debugging", false)

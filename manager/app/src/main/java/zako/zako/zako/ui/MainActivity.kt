@@ -24,6 +24,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ramcosta.composedestinations.DestinationsNavHost
 import com.ramcosta.composedestinations.animations.NavHostAnimatedDestinationStyle
 import com.ramcosta.composedestinations.generated.NavGraphs
+import com.ramcosta.composedestinations.generated.destinations.ExecuteModuleActionScreenDestination
 import com.ramcosta.composedestinations.spec.NavHostGraphSpec
 import com.ramcosta.composedestinations.spec.RouteOrDirection
 import com.ramcosta.composedestinations.utils.isRouteOnBackStackAsState
@@ -39,8 +40,19 @@ import androidx.core.content.edit
 import zako.zako.zako.ui.theme.CardConfig.cardElevation
 import zako.zako.zako.ui.webui.initPlatform
 import java.util.Locale
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.lifecycle.lifecycleScope
+import zako.zako.zako.ui.viewmodel.HomeViewModel
+import zako.zako.zako.ui.viewmodel.SuperUserViewModel
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+    private lateinit var superUserViewModel: SuperUserViewModel
+    private lateinit var homeViewModel: HomeViewModel
+
     private inner class ThemeChangeContentObserver(
         handler: Handler,
         private val onThemeChanged: () -> Unit
@@ -90,10 +102,12 @@ class MainActivity : ComponentActivity() {
         super.attachBaseContext(context)
     }
 
+    @SuppressLint("RestrictedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         // 确保应用正确的语言设置
         applyLanguageSetting()
 
+        // 应用自定义 DPI
         applyCustomDpi()
 
         // Enable edge to edge
@@ -102,6 +116,21 @@ class MainActivity : ComponentActivity() {
         window.isNavigationBarContrastEnforced = false
 
         super.onCreate(savedInstanceState)
+
+        // 初始化 SuperUserViewModel
+        superUserViewModel = SuperUserViewModel()
+
+        lifecycleScope.launch {
+            superUserViewModel.fetchAppList()
+        }
+
+        // 初始化 HomeViewModel
+        homeViewModel = HomeViewModel()
+
+        // 预加载数据
+        lifecycleScope.launch {
+            homeViewModel.initializeData()
+        }
 
         val prefs = getSharedPreferences("settings", MODE_PRIVATE)
         val isFirstRun = prefs.getBoolean("is_first_run", true)
@@ -150,6 +179,12 @@ class MainActivity : ComponentActivity() {
             KernelSUTheme {
                 val navController = rememberNavController()
                 val snackBarHostState = remember { SnackbarHostState() }
+                val currentDestination = navController.currentBackStackEntryAsState().value?.destination
+
+                val showBottomBar = when (currentDestination?.route) {
+                    ExecuteModuleActionScreenDestination.route -> false // Hide for ExecuteModuleActionScreen
+                    else -> true
+                }
 
                 // pre-init platform to faster start WebUI X activities
                 LaunchedEffect(Unit) {
@@ -157,7 +192,15 @@ class MainActivity : ComponentActivity() {
                 }
 
                 Scaffold(
-                    bottomBar = { BottomBar(navController) },
+                    bottomBar = {
+                        AnimatedVisibility(
+                            visible = showBottomBar,
+                            enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
+                            exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
+                        ) {
+                            BottomBar(navController)
+                        }
+                    },
                     contentWindowInsets = WindowInsets(0, 0, 0, 0)
                 ) { innerPadding ->
                     CompositionLocalProvider(
@@ -215,6 +258,14 @@ class MainActivity : ComponentActivity() {
         if (!ThemeConfig.backgroundImageLoaded && !ThemeConfig.preventBackgroundRefresh) {
             loadCustomBackground()
         }
+
+        lifecycleScope.launch {
+            superUserViewModel.fetchAppList()
+        }
+
+        lifecycleScope.launch {
+            homeViewModel.initializeData()
+        }
     }
 
     private val destroyListeners = mutableListOf<() -> Unit>()
@@ -237,8 +288,7 @@ private fun BottomBar(navController: NavHostController) {
     val isManager = Natives.becomeManager(ksuApp.packageName)
     val fullFeatured = isManager && !Natives.requireNewKernel() && rootAvailable()
     val kpmVersion = getKpmVersion()
-    val containerColor = MaterialTheme.colorScheme.surfaceVariant
-    val cardColor = MaterialTheme.colorScheme.surfaceVariant
+    val cardColor = MaterialTheme.colorScheme.surfaceContainer
 
     // 检查是否显示KPM
     val showKpmInfo = LocalContext.current.getSharedPreferences("settings", Context.MODE_PRIVATE)
@@ -250,44 +300,38 @@ private fun BottomBar(navController: NavHostController) {
         ),
         containerColor = TopAppBarDefaults.topAppBarColors(
             containerColor = cardColor.copy(alpha = cardAlpha),
-            scrolledContainerColor = containerColor.copy(alpha = cardAlpha)
+            scrolledContainerColor = cardColor.copy(alpha = cardAlpha)
         ).containerColor,
         tonalElevation = cardElevation
     ) {
         BottomBarDestination.entries.forEach { destination ->
             if (destination == BottomBarDestination.Kpm) {
-                if (kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error") && showKpmInfo) {
+                if (kpmVersion.isNotEmpty() && !kpmVersion.startsWith("Error") && showKpmInfo && Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {
                     if (!fullFeatured && destination.rootRequired) return@forEach
                     val isCurrentDestOnBackStack by navController.isRouteOnBackStackAsState(destination.direction)
                     NavigationBarItem(
                         selected = isCurrentDestOnBackStack,
                         onClick = {
                             if (!isCurrentDestOnBackStack) {
-                                navigator.navigate(destination.direction) {
-                                    popUpTo(NavGraphs.root as RouteOrDirection) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
+                                navigator.popBackStack(destination.direction, false)
+                            }
+                            navigator.navigate(destination.direction) {
+                                popUpTo(NavGraphs.root as RouteOrDirection) {
+                                    saveState = true
                                 }
+                                launchSingleTop = true
+                                restoreState = true
                             }
                         },
                         icon = {
-                            Icon(
-                                imageVector = if (isCurrentDestOnBackStack) {
-                                    destination.iconSelected
-                                } else {
-                                    destination.iconNotSelected
-                                },
-                                contentDescription = stringResource(destination.label),
-                            )
+                            if (isCurrentDestOnBackStack) {
+                                Icon(destination.iconSelected, stringResource(destination.label))
+                            } else {
+                                Icon(destination.iconNotSelected, stringResource(destination.label))
+                            }
                         },
-                        label = {
-                            Text(
-                                text = stringResource(destination.label),
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        }
+                        label = { Text(stringResource(destination.label),style = MaterialTheme.typography.labelMedium) },
+                        alwaysShowLabel = false
                     )
                 }
             } else {
@@ -296,33 +340,26 @@ private fun BottomBar(navController: NavHostController) {
                 NavigationBarItem(
                     selected = isCurrentDestOnBackStack,
                     onClick = {
-                        if (!isCurrentDestOnBackStack) {
-                            navigator.navigate(destination.direction) {
-                                popUpTo(NavGraphs.root as RouteOrDirection) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
+                        if (isCurrentDestOnBackStack) {
+                            navigator.popBackStack(destination.direction, false)
+                        }
+                        navigator.navigate(destination.direction) {
+                            popUpTo(NavGraphs.root) {
+                                saveState = true
                             }
+                            launchSingleTop = true
+                            restoreState = true
                         }
                     },
                     icon = {
-                        Icon(
-                            imageVector = if (isCurrentDestOnBackStack) {
-                                destination.iconSelected
-                            } else {
-                                destination.iconNotSelected
-                            },
-                            contentDescription = stringResource(destination.label),
-                            tint = if (isCurrentDestOnBackStack) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (isCurrentDestOnBackStack) {
+                            Icon(destination.iconSelected, stringResource(destination.label))
+                        } else {
+                            Icon(destination.iconNotSelected, stringResource(destination.label))
+                        }
                     },
-                    label = {
-                        Text(
-                            text = stringResource(destination.label),
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
+                    label = { Text(stringResource(destination.label),style = MaterialTheme.typography.labelMedium) },
+                    alwaysShowLabel = false
                 )
             }
         }

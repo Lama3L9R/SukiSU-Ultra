@@ -59,21 +59,29 @@ import zako.zako.zako.*
 import zako.zako.zako.ui.component.*
 import zako.zako.zako.ui.theme.*
 import zako.zako.zako.ui.theme.CardConfig.cardAlpha
-import zako.zako.zako.ui.theme.CardConfig.cardElevation
 import zako.zako.zako.ui.util.LocalSnackbarHost
 import zako.zako.zako.ui.util.getBugreportFile
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import zako.zako.zako.ui.component.KsuIsValid
-import com.dergoogler.mmrl.platform.Platform
 
-
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable
 fun SettingScreen(navigator: DestinationsNavigator) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
     val snackBarHost = LocalSnackbarHost.current
+    val context = LocalContext.current
+    val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
+    var selectedEngine by rememberSaveable {
+        mutableStateOf(
+            prefs.getString("webui_engine", "default") ?: "default"
+        )
+    }
 
     Scaffold(
         topBar = {
@@ -119,9 +127,9 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -150,17 +158,16 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     }
 
                     KsuIsValid {
-                        SwitchSettingItem(
+                        SwitchItem(
                             icon = Icons.Filled.FolderDelete,
                             title = stringResource(id = R.string.settings_umount_modules_default),
                             summary = stringResource(id = R.string.settings_umount_modules_default_summary),
-                            checked = umountChecked,
-                            onCheckedChange = {
-                                if (Natives.setDefaultUmountModules(it)) {
-                                    umountChecked = it
-                                }
+                            checked = umountChecked
+                        ) { enabled ->
+                            if (Natives.setDefaultUmountModules(enabled)) {
+                                umountChecked = enabled
                             }
-                        )
+                        }
                     }
 
                     // SU 禁用开关（仅在兼容版本显示）
@@ -169,18 +176,17 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             var isSuDisabled by rememberSaveable {
                                 mutableStateOf(!Natives.isSuEnabled())
                             }
-                            SwitchSettingItem(
+                            SwitchItem(
                                 icon = Icons.Filled.RemoveModerator,
                                 title = stringResource(id = R.string.settings_disable_su),
                                 summary = stringResource(id = R.string.settings_disable_su_summary),
-                                checked = isSuDisabled,
-                                onCheckedChange = { checked ->
-                                    val shouldEnable = !checked
-                                    if (Natives.setSuEnabled(shouldEnable)) {
-                                        isSuDisabled = !shouldEnable
-                                    }
+                                checked = isSuDisabled
+                            ) { enabled ->
+                                val shouldEnable = !enabled
+                                if (Natives.setSuEnabled(shouldEnable)) {
+                                    isSuDisabled = enabled
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -192,9 +198,9 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -212,78 +218,112 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                             prefs.getBoolean("check_update", true)
                         )
                     }
-                    SwitchSettingItem(
+                    SwitchItem(
                         icon = Icons.Filled.Update,
                         title = stringResource(id = R.string.settings_check_update),
                         summary = stringResource(id = R.string.settings_check_update_summary),
-                        checked = checkUpdate,
-                        onCheckedChange = {
-                            prefs.edit {putBoolean("check_update", it) }
-                            checkUpdate = it
-                        }
-                    )
+                        checked = checkUpdate
+                    ) { enabled ->
+                        prefs.edit { putBoolean("check_update", enabled) }
+                        checkUpdate = enabled
+                    }
 
-                    // Web调试开关
+                    // WebUI引擎选择
+                    KsuIsValid {
+                        val engineOptions = listOf(
+                            "default" to stringResource(id = R.string.engine_auto_select),
+                            "wx" to stringResource(id = R.string.engine_force_webuix),
+                            "ksu" to stringResource(id = R.string.engine_force_ksu)
+                        )
+
+                        var showEngineDialog by remember { mutableStateOf(false) }
+
+                        SettingItem(
+                            icon = Icons.Filled.WebAsset,
+                            title = stringResource(id = R.string.use_webuix),
+                            summary = engineOptions.find { it.first == selectedEngine }?.second
+                                ?: stringResource(id = R.string.engine_auto_select),
+                            onClick = {
+                                showEngineDialog = true
+                            }
+                        )
+
+                        if (showEngineDialog) {
+                            AlertDialog(
+                                onDismissRequest = { showEngineDialog = false },
+                                title = { Text(stringResource(id = R.string.use_webuix)) },
+                                text = {
+                                    Column {
+                                        engineOptions.forEach { (value, label) ->
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .clickable {
+                                                        selectedEngine = value
+                                                        prefs.edit {
+                                                            putString("webui_engine", value)
+                                                        }
+                                                        showEngineDialog = false
+                                                    }
+                                                    .padding(vertical = 12.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                RadioButton(
+                                                    selected = selectedEngine == value,
+                                                    onClick = null
+                                                )
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                                Text(text = label)
+                                            }
+                                        }
+                                    }
+                                },
+                                confirmButton = {
+                                    TextButton(
+                                        onClick = { showEngineDialog = false }
+                                    ) {
+                                        Text(stringResource(id = R.string.cancel))
+                                    }
+                                }
+                            )
+                        }
+                    }
+
+                    // Web调试和Web X Eruda 开关
                     var enableWebDebugging by rememberSaveable {
                         mutableStateOf(
                             prefs.getBoolean("enable_web_debugging", false)
                         )
                     }
-                    KsuIsValid {
-                        SwitchSettingItem(
-                            icon = Icons.Filled.DeveloperMode,
-                            title = stringResource(id = R.string.enable_web_debugging),
-                            summary = stringResource(id = R.string.enable_web_debugging_summary),
-                            checked = enableWebDebugging,
-                            onCheckedChange = {
-                                prefs.edit { putBoolean("enable_web_debugging", it) }
-                                enableWebDebugging = it
-                            }
-                        )
-                    }
-
-                    // Web X 开关
-                    var useWebUIX by rememberSaveable {
-                        mutableStateOf(
-                            prefs.getBoolean("use_webuix", false)
-                        )
-                    }
-                    KsuIsValid {
-                        SwitchItem(
-                            beta = true,
-                            enabled = Platform.isAlive,
-                            icon = Icons.Filled.WebAsset,
-                            title = stringResource(id = R.string.use_webuix),
-                            summary = stringResource(id = R.string.use_webuix_summary),
-                            checked = useWebUIX
-                        ) {
-                            prefs.edit { putBoolean("use_webuix", it) }
-                            useWebUIX = it
-                        }
-                    }
-
-                    // Web X Eruda 开关
                     var useWebUIXEruda by rememberSaveable {
                         mutableStateOf(
                             prefs.getBoolean("use_webuix_eruda", false)
                         )
                     }
                     KsuIsValid {
+                        SwitchItem(
+                            icon = Icons.Filled.DeveloperMode,
+                            title = stringResource(id = R.string.enable_web_debugging),
+                            summary = stringResource(id = R.string.enable_web_debugging_summary),
+                            checked = enableWebDebugging
+                        ) { enabled ->
+                            prefs.edit { putBoolean("enable_web_debugging", enabled) }
+                            enableWebDebugging = enabled
+                        }
+
                         AnimatedVisibility(
-                            visible = useWebUIX && enableWebDebugging,
+                            visible = enableWebDebugging && selectedEngine == "wx",
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically()
                         ) {
                             SwitchItem(
-                                beta = true,
-                                enabled = Platform.isAlive && useWebUIX && enableWebDebugging,
                                 icon = Icons.Filled.FormatListNumbered,
                                 title = stringResource(id = R.string.use_webuix_eruda),
                                 summary = stringResource(id = R.string.use_webuix_eruda_summary),
                                 checked = useWebUIXEruda
-                            ) {
-                                prefs.edit { putBoolean("use_webuix_eruda", it) }
-                                useWebUIXEruda = it
+                            ) { enabled ->
+                                prefs.edit { putBoolean("use_webuix_eruda", enabled) }
+                                useWebUIXEruda = enabled
                             }
                         }
                     }
@@ -306,9 +346,9 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -399,15 +439,15 @@ fun SettingScreen(navigator: DestinationsNavigator) {
                 }
             }
 
-            // 设置分组卡片 - 关于
+            // 关于
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = cardAlpha)
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
                 ),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation)
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 8.dp)) {
                     Text(
@@ -504,66 +544,11 @@ fun SettingItem(
                 )
             }
         }
-
         Icon(
             imageVector = Icons.Filled.ChevronRight,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(24.dp)
-        )
-    }
-}
-
-@Composable
-fun SwitchSettingItem(
-    icon: ImageVector,
-    title: String,
-    summary: String? = null,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier
-                .padding(end = 16.dp)
-                .size(24.dp)
-        )
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            if (summary != null) {
-                Text(
-                    text = summary,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            colors = SwitchDefaults.colors(
-                checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                checkedTrackColor = MaterialTheme.colorScheme.primary,
-                checkedIconColor = MaterialTheme.colorScheme.primary,
-                uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
-                uncheckedIconColor = MaterialTheme.colorScheme.surfaceVariant
-            )
         )
     }
 }
@@ -648,11 +633,6 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
         }
 
         var selectedOption by remember { mutableStateOf<UninstallType?>(null) }
-        val cardColor = if (!ThemeConfig.useDynamicColor) {
-            ThemeConfig.currentTheme.ButtonContrast
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerHigh
-        }
 
         AlertDialog(
             onDismissRequest = {
@@ -781,7 +761,7 @@ fun rememberUninstallDialog(onSelected: (UninstallType) -> Unit): DialogHandle {
                     )
                 }
             },
-            containerColor = cardColor,
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 4.dp
         )
@@ -794,7 +774,7 @@ private fun TopBar(
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
     val systemIsDark = isSystemInDarkTheme()
-    val cardColor = MaterialTheme.colorScheme.surfaceVariant
+    val cardColor = MaterialTheme.colorScheme.surfaceContainerLow
     val cardAlpha = if (ThemeConfig.customBackgroundUri != null) {
         cardAlpha
     } else {

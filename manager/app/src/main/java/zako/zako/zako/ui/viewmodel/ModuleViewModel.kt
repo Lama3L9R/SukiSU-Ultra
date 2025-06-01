@@ -8,16 +8,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.dergoogler.mmrl.platform.model.ModuleConfig
+import com.dergoogler.mmrl.platform.model.ModuleConfig.Companion.asModuleConfig
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import zako.zako.zako.ui.util.HanziToPinyin
 import zako.zako.zako.ui.util.listModules
+import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import org.json.JSONObject
 import java.text.Collator
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 class ModuleViewModel : ViewModel() {
 
     companion object {
@@ -40,6 +47,7 @@ class ModuleViewModel : ViewModel() {
         val hasWebUi: Boolean,
         val hasActionScript: Boolean,
         val dirId: String, // real module id (dir name)
+        var config: ModuleConfig? = null,
     )
 
     var isRefreshing by mutableStateOf(false)
@@ -100,9 +108,42 @@ class ModuleViewModel : ViewModel() {
                             obj.optString("updateJson"),
                             obj.optBoolean("web"),
                             obj.optBoolean("action"),
-                            obj.getString("dir_id"),
+                            obj.getString("dir_id")
                         )
                     }.toList()
+                launch {
+                    modules.forEach { module ->
+                        withContext(Dispatchers.IO) {
+                            try {
+                                runCatching {
+                                    module.config = module.id.asModuleConfig
+                                }.onFailure { e ->
+                                    Log.e(TAG, "Failed to load config from id for module ${module.id}", e)
+                                }
+                                if (module.config == null) {
+                                    runCatching {
+                                        module.config = module.name.asModuleConfig
+                                    }.onFailure { e ->
+                                        Log.e(TAG, "Failed to load config from name for module ${module.id}", e)
+                                    }
+                                }
+                                if (module.config == null) {
+                                    runCatching {
+                                        module.config = module.description.asModuleConfig
+                                    }.onFailure { e ->
+                                        Log.e(TAG, "Failed to load config from description for module ${module.id}", e)
+                                    }
+                                }
+                                if (module.config == null) {
+                                    module.config = ModuleConfig()
+                                }
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Failed to load any config for module ${module.id}", e)
+                                module.config = ModuleConfig()
+                            }
+                        }
+                    }
+                }
                 isNeedRefresh = false
             }.onFailure { e ->
                 Log.e(TAG, "fetchModuleList: ", e)

@@ -83,4 +83,6 @@ bool set_su_enabled(bool enabled);
 
 bool is_su_enabled();
 
+bool is_KPM_enable();
+
 #endif //KERNELSU_KSU_H

@@ -228,6 +228,7 @@ int ksu_handle_rename(struct dentry *old_dentry, struct dentry *new_dentry)
 	return 0;
 }
 
+#ifdef CONFIG_EXT4_FS
 static void nuke_ext4_sysfs() {
 	struct path path;
 	int err = kern_path("/data/adb/modules", 0, &path);
@@ -245,6 +246,9 @@ static void nuke_ext4_sysfs() {
 
 	ext4_unregister_sysfs(sb);
 }
+#else
+static inline void nuke_ext4_sysfs() { }
+#endif
 
 extern bool zako_sverify;
 
@@ -439,7 +443,17 @@ int ksu_handle_prctl(int option, unsigned long arg2, unsigned long arg3,
 			return 0;
 		}
 
-		/* Manager APIs */
+	if (arg2 == CMD_ENABLE_KPM) {
+    	bool KPM_Enabled = IS_ENABLED(CONFIG_KPM);
+    	if (copy_to_user((void __user *)arg3, &KPM_Enabled, sizeof(KPM_Enabled)))
+        	pr_info("KPM: copy_to_user() failed\n");
+    	return 0;
+	}
+
+	// all other cmds are for 'root manager'
+	if (!from_manager) {
+		return 0;
+	}
 
 		case CMD_GET_APP_PROFILE: {
 			ENFORCE_PERM(from_manager);

@@ -23,6 +23,7 @@
 #define CMD_UID_SHOULD_UMOUNT 13
 #define CMD_IS_SU_ENABLED 14
 #define CMD_ENABLE_SU 15
+#define CMD_ENABLE_KPM 100
 
 #define CMD_ZAKO_ZAKOAPI         100
 #define CMD_ZAKO_MPKGWL_GET      101

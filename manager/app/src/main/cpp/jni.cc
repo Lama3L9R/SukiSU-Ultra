@@ -306,3 +306,8 @@ JNIEXPORT jboolean JNICALL
 Java_zako_zako_zako_Natives_setSuEnabled(JNIEnv *env, jobject thiz, jboolean enabled) {
     return set_su_enabled(enabled);
 }
+
+extern "C" JNIEXPORT jboolean JNICALL
+Java_zako_zako_zako_Natives_isKPMEnabled(JNIEnv *env, jobject) {
+    return is_KPM_enable();
+}

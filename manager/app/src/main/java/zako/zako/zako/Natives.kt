@@ -26,10 +26,13 @@ object Natives {
     const val MINIMAL_SUPPORTED_SU_COMPAT = 12040
     const val KERNEL_SU_DOMAIN = "u:r:su:s0"
 
+    const val MINIMAL_SUPPORTED_KPM = 12800
+
     const val ROOT_UID = 0
     const val ROOT_GID = 0
 
     init {
+        System.loadLibrary("c++_shared")
         System.loadLibrary("zako")
     }
 
@@ -66,6 +69,7 @@ object Natives {
      */
     external fun isSuEnabled(): Boolean
     external fun setSuEnabled(enabled: Boolean): Boolean
+    external fun isKPMEnabled(): Boolean
 
     private const val NON_ROOT_DEFAULT_PROFILE_KEY = "$"
     private const val NOBODY_UID = 9999

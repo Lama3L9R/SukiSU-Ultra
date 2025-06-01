@@ -113,6 +113,7 @@
     <string name="grant_root_failed">Échec de l\'octroi des privilèges root !</string>
     <string name="action">Action</string>
     <string name="open">Ouvrir</string>
+    <string name="close">Fermer</string>
     <string name="enable_web_debugging">Activer le débogage WebView</string>
     <string name="enable_web_debugging_summary">Peut être utilisé pour déboguer WebUI. Activez uniquement cette option si nécessaire.</string>
     <string name="direct_install">Installation directe (recommandé)</string>
@@ -210,7 +211,7 @@
     <string name="color_orange">Orange</string>
     <string name="color_pink">Rose</string>
     <string name="color_gray">Gris</string>
-    <string name="color_ivory">Ivoire</string>
+    <string name="color_yellow">Jaune</string>
     <string name="flash_option">Options du flash</string>
     <string name="flash_option_tip">Sélectionnez le fichier à installer</string>
     <string name="horizon_kernel">Install Anykernel3</string>
@@ -225,7 +226,6 @@
     <string name="batch_authorization">ePouvoir</string>
     <string name="batch_cancel_authorization">retirer</string>
     <string name="backup">Sauvegarder</string>
-    <string name="color_yellow">Jaune</string>
     <string name="kpm_title">KPM</string>
     <string name="kpm_empty">Aucun module de noyau installé pour le moment</string>
     <string name="kpm_version">Version</string>
@@ -298,7 +298,7 @@
     <string name="flash_failed_message">Échec du flash</string>
     <!-- lkm/gki install -->
     <string name="Lkm_install_methods">Réparation/installation LKM</string>
-    <string name="GKI_install_methods">GKI/non-GKI installation</string>
+    <string name="GKI_install_methods">Flashing AnyKernel3</string>
     <string name="kernel_version_log">Version du noyau：%1$s</string>
     <string name="tool_version_log">Utilisation de l\'outil de correctifs：%1$s</string>
     <string name="configuration">Configurer</string>
@@ -328,8 +328,10 @@
     <string name="show_kpm_info">Afficher la fonction KPM</string>
     <string name="show_kpm_info_summary">Afficher les informations et fonctions KPM dans la barre d\'accueil et du bas (nécessite de rouvrir l\'application)</string>
     <!-- Webui X settings -->
-    <string name="use_webuix">Utiliser l\'interface Web X</string>
-    <string name="use_webuix_summary">Utiliser WebUI X au lieu de WebUI qui supporte plus d\'API</string>
+    <string name="use_webuix">Select the WebUI engine to use</string>
+    <string name="engine_auto_select">Automatic Selection</string>
+    <string name="engine_force_webuix">Force the use of WebUI X</string>
+    <string name="engine_force_ksu">Mandatory use of KSU WebUI</string>
     <string name="use_webuix_eruda">Injecter Eruda dans WebUI X</string>
     <string name="use_webuix_eruda_summary">Injectez une console de débogage dans WebUI X pour faciliter le débogage. Nécessite que le débogage soit activé.</string>
     <!-- DPI setting related strings -->
@@ -367,4 +369,5 @@
     <string name="installing_module">Module en cours d\'installation %1$d/%2$d</string>
     <string name="module_failed_count">%d a échoué à installer un nouveau module</string>
     <string name="module_download_error">Le téléchargement du modèle a échoué</string>
+    <string name="kernel_flashing">Kernel Flashing</string>
 </resources>

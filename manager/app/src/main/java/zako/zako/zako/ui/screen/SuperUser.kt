@@ -1,7 +1,6 @@
 package zako.zako.zako.ui.screen
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -42,11 +41,18 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AppProfileScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import kotlinx.coroutines.launch
-import zako.zako.zako.Natives
 import zako.zako.zako.ui.component.SearchAppBar
 import zako.zako.zako.ui.util.ModuleModify
 import zako.zako.zako.ui.viewmodel.SuperUserViewModel
+import zako.zako.zako.Natives
+import zako.zako.zako.ui.theme.CardConfig
+import com.dergoogler.mmrl.ui.component.LabelItem
+import com.dergoogler.mmrl.ui.component.LabelItemDefaults
 
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Destination<RootGraph>
 @Composable
@@ -65,7 +71,7 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
     LaunchedEffect(key1 = navigator) {
         viewModel.search = ""
         if (viewModel.appList.isEmpty()) {
-            viewModel.fetchAppList()
+            // viewModel.fetchAppList()
         }
     }
 
@@ -516,9 +522,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     val profile = Natives.getAppProfile(app.packageName, app.uid)
                                     val updatedProfile = profile.copy(allowSu = allowSu)
                                     if (Natives.setAppProfile(updatedProfile)) {
-                                        // 不重新获取应用列表，避免滚动位置重置
-                                        // viewModel.fetchAppList()
-                                        // 仅更新当前应用的配置
                                         viewModel.updateAppProfileLocally(app.packageName, updatedProfile)
                                     }
                                 }
@@ -558,9 +561,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     val profile = Natives.getAppProfile(app.packageName, app.uid)
                                     val updatedProfile = profile.copy(allowSu = allowSu)
                                     if (Natives.setAppProfile(updatedProfile)) {
-                                        // 不重新获取应用列表，避免滚动位置重置
-                                        // viewModel.fetchAppList()
-                                        // 仅更新当前应用的配置
                                         viewModel.updateAppProfileLocally(app.packageName, updatedProfile)
                                     }
                                 }
@@ -600,9 +600,6 @@ fun SuperUserScreen(navigator: DestinationsNavigator) {
                                     val profile = Natives.getAppProfile(app.packageName, app.uid)
                                     val updatedProfile = profile.copy(allowSu = allowSu)
                                     if (Natives.setAppProfile(updatedProfile)) {
-                                        // 不重新获取应用列表，避免滚动位置重置
-                                        // viewModel.fetchAppList()
-                                        // 仅更新当前应用的配置
                                         viewModel.updateAppProfileLocally(app.packageName, updatedProfile)
                                     }
                                 }
@@ -692,12 +689,14 @@ private fun AppItem(
     onLongClick: () -> Unit,
     viewModel: SuperUserViewModel
 ) {
+    val cardAlpha = CardConfig.cardAlpha
+
     val cardColor = if (app.allowSu)
-        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        MaterialTheme.colorScheme.surfaceVariant.copy(alpha = cardAlpha)
     else if (app.hasCustomProfile)
-        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
+        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = cardAlpha)
     else
-        MaterialTheme.colorScheme.surfaceContainerLow
+        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = cardAlpha)
 
     Card(
         colors = CardDefaults.cardColors(containerColor = cardColor),
@@ -772,13 +771,21 @@ private fun AppItem(
                     horizontalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     if (app.allowSu) {
-                        LabelText(label = "ROOT", backgroundColor = MaterialTheme.colorScheme.primary)
+                        LabelItem(text = "ROOT",)
                     }
                     if (Natives.uidShouldUmount(app.uid)) {
-                        LabelText(label = "UMOUNT", backgroundColor = MaterialTheme.colorScheme.tertiary)
+                        LabelItem(text = "UNMOUNT", style = LabelItemDefaults.style.copy(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        )
                     }
                     if (app.hasCustomProfile) {
-                        LabelText(label = "CUSTOM", backgroundColor = MaterialTheme.colorScheme.secondary)
+                        LabelItem(text = "CUSTOM", style = LabelItemDefaults.style.copy(
+                            containerColor = MaterialTheme.colorScheme.onTertiary,
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                            )
+                        )
                     }
                 }
             }

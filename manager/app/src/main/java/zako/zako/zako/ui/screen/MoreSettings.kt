@@ -28,43 +28,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.NavigateNext
-import androidx.compose.material.icons.filled.AcUnit
-import androidx.compose.material.icons.filled.Brush
-import androidx.compose.material.icons.filled.ColorLens
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.LightMode
-import androidx.compose.material.icons.filled.Opacity
-import androidx.compose.material.icons.filled.Palette
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.Wallpaper
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -88,6 +59,7 @@ import androidx.core.content.edit
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
+import zako.zako.zako.Natives
 import zako.zako.zako.R
 import zako.zako.zako.ui.MainActivity
 import zako.zako.zako.ui.component.ImageEditorDialog
@@ -117,6 +89,10 @@ import zako.zako.zako.*
 import java.util.Locale
 import kotlin.math.roundToInt
 
+/**
+ * @author ShirkNeko
+ * @date 2025/5/31.
+ */
 fun saveCardConfig(context: Context) {
     CardConfig.save(context)
 }
@@ -511,8 +487,9 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
         )
     }
 
-    val cardColor = MaterialTheme.colorScheme.surfaceVariant
+    val cardColor = MaterialTheme.colorScheme.surfaceContainerHigh
     val cardAlphaUse = CardConfig.cardAlpha
+    val isDarkTheme = isSystemInDarkTheme()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -550,12 +527,16 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    tonalElevation = 1.dp,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column {
+                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         // 语言设置
                         ListItem(
                             headlineContent = { Text(stringResource(R.string.language_setting)) },
@@ -583,11 +564,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             modifier = Modifier.clickable { showLanguageDialog = true }
                         )
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-
                         // 主题模式
                         ListItem(
                             headlineContent = { Text(stringResource(R.string.theme_mode)) },
@@ -612,20 +588,17 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             modifier = Modifier.clickable { showThemeModeDialog = true }
                         )
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-
                         // 动态颜色开关
-                        SwitchItem(
-                            icon = Icons.Filled.ColorLens,
-                            title = stringResource(R.string.dynamic_color_title),
-                            summary = stringResource(R.string.dynamic_color_summary),
-                            checked = useDynamicColor
-                        ) { enabled ->
-                            useDynamicColor = enabled
-                            context.saveDynamicColorState(enabled)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                            SwitchItem(
+                                icon = Icons.Filled.ColorLens,
+                                title = stringResource(R.string.dynamic_color_title),
+                                summary = stringResource(R.string.dynamic_color_summary),
+                                checked = useDynamicColor
+                            ) { enabled ->
+                                useDynamicColor = enabled
+                                context.saveDynamicColorState(enabled)
+                            }
                         }
 
                         HorizontalDivider(
@@ -644,7 +617,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                     headlineContent = { Text(stringResource(R.string.theme_color)) },
                                     supportingContent = {
                                         val currentThemeName = when (ThemeConfig.currentTheme) {
-                                            is ThemeColors.Default -> stringResource(R.string.color_default)
                                             is ThemeColors.Green -> stringResource(R.string.color_green)
                                             is ThemeColors.Purple -> stringResource(R.string.color_purple)
                                             is ThemeColors.Orange -> stringResource(R.string.color_orange)
@@ -673,11 +645,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                         containerColor = Color.Transparent
                                     ),
                                     modifier = Modifier.clickable { showThemeColorDialog = true }
-                                )
-
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(horizontal = 16.dp),
-                                    color = MaterialTheme.colorScheme.outlineVariant
                                 )
                             }
                         }
@@ -770,69 +737,47 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             )
                         }
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-
                         // 自定义背景开关
-                        ListItem(
-                            headlineContent = { Text(stringResource(id = R.string.settings_custom_background)) },
-                            supportingContent = { Text(stringResource(id = R.string.settings_custom_background_summary)) },
-                            leadingContent = {
-                                Icon(
-                                    Icons.Filled.Wallpaper,
-                                    contentDescription = null,
-                                    tint = if (isCustomBackgroundEnabled)
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            },
-                            trailingContent = {
-                                Switch(
-                                    checked = isCustomBackgroundEnabled,
-                                    onCheckedChange = { isChecked ->
-                                        if (isChecked) {
-                                            pickImageLauncher.launch("image/*")
-                                        } else {
-                                            context.saveCustomBackground(null)
-                                            isCustomBackgroundEnabled = false
-                                            CardConfig.cardElevation
-                                            CardConfig.cardAlpha = 1f
-                                            CardConfig.cardDim = 0f
-                                            CardConfig.isCustomAlphaSet = false
-                                            CardConfig.isCustomDimSet = false
-                                            CardConfig.isCustomBackgroundEnabled = false
-                                            saveCardConfig(context)
-                                            cardAlpha = 1f
-                                            cardDim = 0f
+                        SwitchItem(
+                            icon = Icons.Filled.Wallpaper,
+                            title = stringResource(id = R.string.settings_custom_background),
+                            summary = stringResource(id = R.string.settings_custom_background_summary),
+                            checked = isCustomBackgroundEnabled
+                        ) { isChecked ->
+                            if (isChecked) {
+                                pickImageLauncher.launch("image/*")
+                            } else {
+                                context.saveCustomBackground(null)
+                                isCustomBackgroundEnabled = false
+                                CardConfig.cardElevation
+                                CardConfig.cardAlpha = 1f
+                                CardConfig.cardDim = 0f
+                                CardConfig.isCustomAlphaSet = false
+                                CardConfig.isCustomDimSet = false
+                                CardConfig.isCustomBackgroundEnabled = false
+                                saveCardConfig(context)
+                                cardAlpha = 1f
+                                cardDim = 0f
 
-                                            // 重置其他相关设置
-                                            ThemeConfig.needsResetOnThemeChange = true
-                                            ThemeConfig.preventBackgroundRefresh = false
+                                // 重置其他相关设置
+                                ThemeConfig.needsResetOnThemeChange = true
+                                ThemeConfig.preventBackgroundRefresh = false
 
-                                            context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
-                                                .edit {
-                                                    putBoolean(
-                                                        "prevent_background_refresh",
-                                                        false
-                                                    )
-                                                }
-
-                                            Toast.makeText(
-                                                context,
-                                                context.getString(R.string.background_removed),
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
+                                context.getSharedPreferences("theme_prefs", Context.MODE_PRIVATE)
+                                    .edit {
+                                        putBoolean(
+                                            "prevent_background_refresh",
+                                            false
+                                        )
                                     }
-                                )
-                            },
-                            colors = ListItemDefaults.colors(
-                                containerColor = Color.Transparent
-                            )
-                        )
+
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.background_removed),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
 
                         // 透明度和亮度调节滑动条
                         AnimatedVisibility(
@@ -957,12 +902,16 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    tonalElevation = 1.dp,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column {
+                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         // 添加简洁模式开关
                         SwitchItem(
                             icon = Icons.Filled.Brush,
@@ -973,10 +922,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             onSimpleModeChange(it)
                         }
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
+                        
 
                         // 隐藏内核部分版本号
                         SwitchItem(
@@ -988,11 +934,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             onHideVersionChange(it)
                         }
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-
                         // 模块数量等信息
                         SwitchItem(
                             icon = Icons.Filled.VisibilityOff,
@@ -1002,12 +943,7 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                         ) {
                             onHideOtherInfoChange(it)
                         }
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-
+                        
                         // SuSFS 状态信息
                         SwitchItem(
                             icon = Icons.Filled.VisibilityOff,
@@ -1018,25 +954,17 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                             onHideSusfsStatusChange(it)
                         }
 
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
-
-                        // 显示KPM开关
-                        SwitchItem(
-                            icon = Icons.Filled.VisibilityOff,
-                            title = stringResource(R.string.show_kpm_info),
-                            summary = stringResource(R.string.show_kpm_info_summary),
-                            checked = isShowKpmInfo
-                        ) {
-                            onShowKpmInfoChange(it)
+                        if (Natives.version >= Natives.MINIMAL_SUPPORTED_KPM) {
+                            // 显示KPM开关
+                            SwitchItem(
+                                icon = Icons.Filled.Visibility,
+                                title = stringResource(R.string.show_kpm_info),
+                                summary = stringResource(R.string.show_kpm_info_summary),
+                                checked = isShowKpmInfo
+                            ) {
+                                onShowKpmInfoChange(it)
+                            }
                         }
-
-                        HorizontalDivider(
-                            modifier = Modifier.padding(horizontal = 16.dp),
-                            color = MaterialTheme.colorScheme.outlineVariant
-                        )
 
                         // 隐藏链接信息
                         SwitchItem(
@@ -1063,12 +991,16 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    tonalElevation = 1.dp,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = cardAlpha)
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
                 ) {
-                    Column {
+                    Column(modifier = Modifier.padding(vertical = 8.dp)) {
                         // SELinux 开关
                         KsuIsValid {
                             SwitchItem(
@@ -1100,20 +1032,15 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                     }
                                 }
                             }
-
-                            HorizontalDivider(
-                                modifier = Modifier.padding(horizontal = 16.dp),
-                                color = MaterialTheme.colorScheme.outlineVariant
-                            )
                         }
 
                         // SuSFS 配置（仅在支持时显示）
                         val suSFS = getSuSFS()
                         val isSUS_SU = getSuSFSFeatures()
                         if (suSFS == "Supported" && isSUS_SU == "CONFIG_KSU_SUSFS_SUS_SU") {
-                            // 初始化时，默认启用
+                            // 默认启用
                             var isEnabled by rememberSaveable {
-                                mutableStateOf(true) // 默认启用
+                                mutableStateOf(true)
                             }
 
                             // 在启动时检查状态
@@ -1211,6 +1138,12 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                             ThemeConfig.forceDarkMode = null
                                             CardConfig.isUserLightModeEnabled = false
                                             CardConfig.isUserDarkModeEnabled = false
+                                            if (!CardConfig.isCustomAlphaSet) {
+                                                CardConfig.cardAlpha = 1f
+                                            }
+                                            if (!CardConfig.isCustomDimSet) {
+                                                CardConfig.cardDim = if (isDarkTheme) 0.5f else 0f
+                                            }
                                             CardConfig.save(context)
                                         }
                                     }
@@ -1288,7 +1221,6 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                 .fillMaxWidth()
                                 .clickable {
                                     context.saveThemeColors(when (theme) {
-                                        ThemeColors.Default -> "default"
                                         ThemeColors.Green -> "green"
                                         ThemeColors.Purple -> "purple"
                                         ThemeColors.Orange -> "orange"
@@ -1307,11 +1239,12 @@ fun MoreSettingsScreen(navigator: DestinationsNavigator) {
                                 onClick = null
                             )
                             Spacer(modifier = Modifier.width(12.dp))
+                            val isDark = isSystemInDarkTheme()
                             Box(
                                 modifier = Modifier
                                     .size(24.dp)
                                     .clip(CircleShape)
-                                    .background(theme.Primary)
+                                    .background(if (isDark) theme.primaryDark else theme.primaryLight)
                             )
                             Spacer(modifier = Modifier.width(12.dp))
                             Text(name)

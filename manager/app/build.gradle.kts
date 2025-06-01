@@ -5,7 +5,7 @@ import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 import com.android.build.gradle.tasks.PackageAndroidArtifact
 
 plugins {
-    id("com.android.application") version "8.9.2"
+    id("com.android.application") version "8.9.3"
     id("org.jetbrains.kotlin.android") version "2.1.10"
     id("org.jetbrains.kotlin.plugin.compose") version "2.1.10"
     id("com.google.devtools.ksp") version "2.1.10-1.0.30"
@@ -43,7 +43,6 @@ android {
     }*/
 
     buildFeatures {
-        aidl = true
         buildConfig = true
         compose = true
         prefab = true
@@ -65,12 +64,6 @@ android {
             excludes += "DebugProbesKt.bin"
             // https://issueantenna.com/repo/kotlin/kotlinx.coroutines/issues/3158
             excludes += "kotlin-tooling-metadata.json"
-        }
-    }
-
-    externalNativeBuild {
-        cmake {
-            path("src/main/cpp/CMakeLists.txt")
         }
     }
 
@@ -105,19 +98,19 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.compose.foundation:foundation")
     implementation("androidx.compose.material3:material3")
-    implementation("androidx.navigation:navigation-compose:2.8.9")
-    implementation(platform("androidx.compose:compose-bom:2025.04.01"))
+    implementation("androidx.navigation:navigation-compose:2.9.0")
+    implementation(platform("androidx.compose:compose-bom:2025.05.01"))
     implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.compose.material:material:1.8.0")
+    implementation("androidx.compose.material:material:1.8.2")
     implementation("androidx.compose.material3:material3:1.3.2")
-    implementation("androidx.compose.ui:ui:1.8.0")
+    implementation("androidx.compose.ui:ui:1.8.2")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     debugImplementation("androidx.compose.ui:ui-tooling")
-    implementation("androidx.compose.ui:ui-tooling-preview:1.8.0")
-    implementation("androidx.compose.foundation:foundation:1.7.8")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+    implementation("androidx.compose.ui:ui-tooling-preview:1.8.2")
+    implementation("androidx.compose.foundation:foundation:1.8.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.9.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.9.0")
     implementation("androidx.compose.ui:ui")
     implementation("androidx.webkit:webkit:1.13.0")
     implementation("com.github.topjohnwu.libsu:core:6.0.0")
@@ -134,11 +127,14 @@ dependencies {
     implementation("com.maxkeppeler.sheets-compose-dialogs:input:1.3.0")
     implementation("io.noties.markwon:core:4.6.2")
     implementation("org.lsposed.libcxx:libcxx:27.0.12077973")
-    implementation("androidx.documentfile:documentfile:1.0.1")
+    implementation("androidx.documentfile:documentfile:1.1.0")
+    implementation("com.google.code.gson:gson:2.13.1")
+    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation("androidx.navigation:navigation-compose:2.9.0")
 
-    implementation("com.github.MMRLApp.MMRL:platform:v33624")
-    compileOnly("com.github.MMRLApp.MMRL:hidden-api:v33624")
-    implementation("com.github.MMRLApp.MMRL:webui:v33624")
-    implementation("com.github.MMRLApp.MMRL:ui:v33624")
+    implementation("com.github.MMRLApp.MMRL:platform:2bb00b3c2b")
+    compileOnly("com.github.MMRLApp.MMRL:hidden-api:2bb00b3c2b")
+    implementation("com.github.MMRLApp.MMRL:webui:2bb00b3c2b")
+    implementation("com.github.MMRLApp.MMRL:ui:2bb00b3c2b")
 
 }
