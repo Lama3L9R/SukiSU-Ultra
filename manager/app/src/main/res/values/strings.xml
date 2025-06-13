@@ -192,7 +192,7 @@
     <string name="hide_kernel_kernelsu_version">Hide kernel version</string>
     <string name="hide_kernel_kernelsu_version_summary">Hide kernel version</string>
     <string name="hide_other_info">Hide other info</string>
-    <string name="hide_other_info_summary">Hides information about the number of super users, modules and KPM modules on the home page</string>
+    <string name="hide_other_info_summary">Hides Red dot about the number of super users, modules and KPM modules on the navigation bar page</string>
     <string name="hide_susfs_status">Hide SuSFS status</string>
     <string name="hide_susfs_status_summary">Hide SuSFS status information on the home page</string>
     <string name="hide_link_card">Hide Link Card Status</string>
@@ -323,6 +323,9 @@
     <string name="susfs_disabled">SuSFS disabled</string>
     <string name="background_set_success">Background set successfully</string>
     <string name="background_removed">Removed custom backgrounds</string>
+    <string name="icon_switch_title">Alternate icon</string>
+    <string name="icon_switch_summary">Change the launcher icon to KernelSU\'s icon.</string>
+    <string name="icon_switched">Icon switched</string>
     <string name="root_require_for_install">Requires root privileges</string>
     <!-- KPM display settings -->
     <string name="show_kpm_info">Display KPM Function</string>

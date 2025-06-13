@@ -3,7 +3,10 @@ package zako.zako.zako.ui.component
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Icon
@@ -15,13 +18,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import zako.zako.zako.ui.theme.CardConfig
 
 @Composable
 fun SwitchItem(
-    icon: ImageVector,
+    icon: ImageVector? = null,
     title: String,
     summary: String? = null,
     checked: Boolean,
@@ -55,47 +60,58 @@ fun SwitchItem(
         disabledUncheckedIconColor = MaterialTheme.colorScheme.surfaceVariant
     )
 
-    ListItem(
-        headlineContent = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                maxLines = Int.MAX_VALUE,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        supportingContent = summary?.let {
-            {
+    MaterialTheme(
+        colorScheme = MaterialTheme.colorScheme.copy(
+            surface = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    ) {
+        ListItem(
+            headlineContent = {
                 Text(
-                    text = it,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
                     maxLines = Int.MAX_VALUE,
                     overflow = TextOverflow.Ellipsis
                 )
-            }
-        },
-        leadingContent = {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-                tint = iconTint
-            )
-        },
-        trailingContent = {
-            Switch(
-                checked = checked,
-                onCheckedChange = null,
-                enabled = enabled,
-                colors = switchColors
-            )
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled) {
-                onCheckedChange(!checked)
-            }
-            .padding(vertical = 4.dp)
-    )
+            },
+            supportingContent = summary?.let {
+                {
+                    Column {
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Text(
+                            text = it,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = Int.MAX_VALUE,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            },
+            leadingContent = icon?.let {
+                {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                        tint = iconTint
+                    )
+                }
+            },
+            trailingContent = {
+                Switch(
+                    checked = checked,
+                    onCheckedChange = null,
+                    enabled = enabled,
+                    colors = switchColors
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(enabled = enabled) {
+                    onCheckedChange(!checked)
+                }
+                .padding(vertical = 4.dp)
+        )
+    }
 }

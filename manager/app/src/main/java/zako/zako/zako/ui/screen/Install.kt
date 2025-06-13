@@ -33,7 +33,6 @@ import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -60,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -92,6 +92,8 @@ import zako.zako.zako.ui.util.isAbDevice
 import zako.zako.zako.ui.util.isInitBoot
 import zako.zako.zako.ui.util.rootAvailable
 import zako.zako.zako.getKernelVersion
+import zako.zako.zako.ui.theme.CardConfig
+import zako.zako.zako.ui.theme.getCardElevation
 
 /**
  * @author ShirkNeko
@@ -253,7 +255,7 @@ fun InstallScreen(navigator: DestinationsNavigator) {
                 (lkmSelection as? LkmSelection.LkmUri)?.let {
                     ElevatedCard(
                         colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
-                        elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                        elevation = getCardElevation(),
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 12.dp)
@@ -279,7 +281,7 @@ fun InstallScreen(navigator: DestinationsNavigator) {
                     if (method.slot != null) {
                         ElevatedCard(
                             colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
-                            elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                            elevation = getCardElevation(),
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(bottom = 12.dp)
@@ -478,7 +480,7 @@ private fun SelectInstallMethod(
         if (isGKI) {
             ElevatedCard(
                 colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                elevation = getCardElevation(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp)
@@ -489,24 +491,30 @@ private fun SelectInstallMethod(
                         spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     )
             ) {
-                ListItem(
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.AutoFixHigh,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    headlineContent = {
-                        Text(
-                            stringResource(R.string.Lkm_install_methods),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        LKMExpanded = !LKMExpanded
-                    }
-                )
+                MaterialTheme(
+                    colorScheme = MaterialTheme.colorScheme.copy(
+                        surface = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else MaterialTheme.colorScheme.surfaceContainerHigh
+                    )
+                ) {
+                    ListItem(
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.AutoFixHigh,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        headlineContent = {
+                            Text(
+                                stringResource(R.string.Lkm_install_methods),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            LKMExpanded = !LKMExpanded
+                        }
+                    )
+                }
 
                 AnimatedVisibility(
                     visible = LKMExpanded,
@@ -584,7 +592,7 @@ private fun SelectInstallMethod(
         if (rootAvailable) {
             ElevatedCard(
                 colors = getCardColors(MaterialTheme.colorScheme.surfaceVariant),
-                elevation = CardDefaults.cardElevation(defaultElevation = cardElevation),
+                elevation = getCardElevation(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(bottom = 12.dp)
@@ -595,24 +603,30 @@ private fun SelectInstallMethod(
                         spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     )
             ) {
-                ListItem(
-                    leadingContent = {
-                        Icon(
-                            Icons.Filled.FileUpload,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    headlineContent = {
-                        Text(
-                            stringResource(R.string.GKI_install_methods),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    },
-                    modifier = Modifier.clickable {
-                        GKIExpanded = !GKIExpanded
-                    }
-                )
+                MaterialTheme(
+                    colorScheme = MaterialTheme.colorScheme.copy(
+                        surface = if (CardConfig.isCustomBackgroundEnabled) Color.Transparent else MaterialTheme.colorScheme.surfaceContainerHigh
+                    )
+                ) {
+                    ListItem(
+                        leadingContent = {
+                            Icon(
+                                Icons.Filled.FileUpload,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        },
+                        headlineContent = {
+                            Text(
+                                stringResource(R.string.GKI_install_methods),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        },
+                        modifier = Modifier.clickable {
+                            GKIExpanded = !GKIExpanded
+                        }
+                    )
+                }
 
                 AnimatedVisibility(
                     visible = GKIExpanded,
@@ -702,7 +716,7 @@ fun rememberSelectKmiDialog(onSelected: (String?) -> Unit): DialogHandle {
         }
 
         var selection by remember { mutableStateOf<String?>(null) }
-        val backgroundColor = MaterialTheme.colorScheme.surfaceContainerHighest
+        val backgroundColor = MaterialTheme.colorScheme.surfaceContainerHigh
 
         MaterialTheme(
             colorScheme = MaterialTheme.colorScheme.copy(
@@ -732,7 +746,12 @@ private fun TopBar(
     onLkmUpload: () -> Unit = {},
     scrollBehavior: TopAppBarScrollBehavior? = null
 ) {
-    val cardColor = MaterialTheme.colorScheme.surfaceContainerLow
+    val colorScheme = MaterialTheme.colorScheme
+    val cardColor = if (CardConfig.isCustomBackgroundEnabled) {
+        colorScheme.surfaceContainerLow
+    } else {
+        colorScheme.background
+    }
     val cardAlpha = cardAlpha
 
     TopAppBar(
