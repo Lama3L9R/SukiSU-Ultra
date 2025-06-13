@@ -5,6 +5,7 @@
 #ifndef KERNELSU_KSU_H
 #define KERNELSU_KSU_H
 
+#include "prelude.h"
 #include <linux/capability.h>
 
 bool become_manager(const char *);
@@ -24,8 +25,6 @@ bool is_lkm_mode();
 // NGROUPS_MAX for Linux is 65535 generally, but we only supports 32 groups.
 #define KSU_MAX_GROUPS 32
 #define KSU_SELINUX_DOMAIN 64
-
-using p_key_t = char[KSU_MAX_PACKAGE_NAME];
 
 struct root_profile {
     int32_t uid;
@@ -75,9 +74,9 @@ struct app_profile {
     };
 };
 
-bool set_app_profile(const app_profile *profile);
+bool set_app_profile(const struct app_profile* profile);
 
-bool get_app_profile(p_key_t key, app_profile *profile);
+bool get_app_profile(char* key, struct app_profile* profile);
 
 bool set_su_enabled(bool enabled);
 

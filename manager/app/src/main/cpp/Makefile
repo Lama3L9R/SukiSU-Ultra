@@ -1,8 +1,8 @@
 # Toolchain
-CXX ?= aarch64-linux-android33-clang++
+CC ?= aarch64-linux-android33-clang
 
 # flags
-CFLAGS := -c $(CFLAGS) -DANDROID_STL=c++_shared
+CFLAGS := -c $(CFLAGS)
 LDFLAGS := -shared -Wall -fPIC $(LDFLAGS)
 
 # path macros
@@ -38,11 +38,11 @@ default: makedir all
 
 $(TARGET_DYNAMIC): $(OBJ)
 		$(info $(NULL)  ELF $(TARGET_DYNAMIC))
-		@$(CXX) -o $@ $(OBJ) $(LDFLAGS)
+		@$(CC) -o $@ $(OBJ) $(LDFLAGS)
 
-$(OBJ_PATH)/%.o : %.cc
-		$(info $(NULL)  CXX  $< $@)
-		@$(CXX) $(CFLAGS) -o $@ $<
+$(OBJ_PATH)/%.o : %.c
+		$(info $(NULL)  CC  $< $@)
+		@$(CC) $(CFLAGS) -o $@ $<
 
 # phony rules
 .PHONY: envinfo
