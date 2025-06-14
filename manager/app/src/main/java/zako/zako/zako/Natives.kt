@@ -32,7 +32,6 @@ object Natives {
     const val ROOT_GID = 0
 
     init {
-        System.loadLibrary("c++_shared")
         System.loadLibrary("zako")
     }
 

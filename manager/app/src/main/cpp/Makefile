@@ -3,7 +3,7 @@ CC ?= aarch64-linux-android33-clang
 
 # flags
 CFLAGS := -c $(CFLAGS)
-LDFLAGS := -shared -Wall -fPIC $(LDFLAGS)
+LDFLAGS := -shared -Wall -fPIC -Wl,-llog $(LDFLAGS)
 
 # path macros
 BIN_PATH := bin
