@@ -63,7 +63,7 @@ class MainActivity : ComponentActivity() {
             // Enable edge to edge
             enableEdgeToEdge()
 
-        window.isNavigationBarContrastEnforced = false
+            window.isNavigationBarContrastEnforced = false
 
             super.onCreate(savedInstanceState)
 
